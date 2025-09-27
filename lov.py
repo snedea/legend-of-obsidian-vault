@@ -665,9 +665,12 @@ class CombatScreen(Screen):
             "(S)tats",
             "(R)un"
         ]
-        if current_player.skill_uses > 0:
-            skill_name = CLASS_TYPES[current_player.class_type]['skill_name']
-            options.append(f"({current_player.class_type}){skill_name} ({current_player.skill_uses})")
+        if current_player.can_use_skill():
+            skill_type = current_player.class_type
+            skill_points = current_player.get_skill_points(skill_type)
+            uses_left = CLASS_TYPES[skill_type]['daily_uses'] - current_player.skills_used_today
+            mastery_indicator = "★" if current_player.has_ultra_mastery(skill_type) else ""
+            options.append(f"({skill_type}){CLASS_TYPES[skill_type]['skill_name']} {mastery_indicator}({uses_left})")
         if self.quiz_available and self.enemy.note_content:
             options.append("(Q)uiz Attack (2x damage if correct)")
 
@@ -687,9 +690,12 @@ class CombatScreen(Screen):
             "(R)un"
         ]
 
-        if current_player.skill_uses > 0:
-            skill_name = CLASS_TYPES[current_player.class_type]['skill_name']
-            options.append(f"({current_player.class_type}){skill_name} ({current_player.skill_uses})")
+        if current_player.can_use_skill():
+            skill_type = current_player.class_type
+            skill_points = current_player.get_skill_points(skill_type)
+            uses_left = CLASS_TYPES[skill_type]['daily_uses'] - current_player.skills_used_today
+            mastery_indicator = "★" if current_player.has_ultra_mastery(skill_type) else ""
+            options.append(f"({skill_type}){CLASS_TYPES[skill_type]['skill_name']} {mastery_indicator}({uses_left})")
 
         if self.quiz_available and self.enemy.note_content:
             options.append("(Q)uiz Attack (2x damage if correct)")
@@ -708,7 +714,7 @@ class CombatScreen(Screen):
             self.app.push_screen(StatsScreen())
         elif key == "R":
             self._run_away()
-        elif key == current_player.class_type and current_player.skill_uses > 0:
+        elif key == current_player.class_type and current_player.can_use_skill():
             self._skill_attack()
         elif key == "Q" and self.quiz_available and self.enemy.note_content:
             self.app.push_screen(QuizScreen(self.enemy, self))
@@ -727,12 +733,40 @@ class CombatScreen(Screen):
 
     def _skill_attack(self):
         """Player special skill attack"""
-        current_player.skill_uses -= 1
-        damage = random.randint(current_player.attack_power, current_player.attack_power * 2)
+        if not current_player.can_use_skill():
+            self.notify("You have no skill uses remaining today!")
+            return
+
+        current_player.use_skill()
+        skill_type = current_player.class_type
+        skill_points = current_player.get_skill_points(skill_type)
+
+        # Calculate damage based on skill points
+        base_damage = current_player.attack_power
+        skill_multiplier = 1.0 + (skill_points * 0.05)  # 5% per skill point
+
+        if skill_type == 'K':  # Death Knight
+            damage = int(base_damage * skill_multiplier * random.uniform(1.5, 2.5))
+            skill_name = "Death Knight Strike"
+        elif skill_type == 'P':  # Mystical
+            damage = int(base_damage * skill_multiplier * random.uniform(1.3, 2.0))
+            skill_name = "Mystical Blast"
+        elif skill_type == 'D':  # Thieving
+            damage = int(base_damage * skill_multiplier * random.uniform(1.2, 2.2))
+            skill_name = "Sneak Attack"
+        else:
+            damage = base_damage
+            skill_name = "Skill Attack"
+
         self.enemy.hitpoints -= damage
 
-        skill_name = CLASS_TYPES[current_player.class_type]['skill_name']
-        self.notify(f"{skill_name}! You hit for {damage} damage!")
+        # Ultra-mastery bonus message
+        mastery_msg = ""
+        if current_player.has_ultra_mastery(skill_type):
+            mastery_msg = " **ULTRA MASTERY!**"
+
+        uses_left = CLASS_TYPES[skill_type]['daily_uses'] - current_player.skills_used_today
+        self.notify(f"{skill_name}! You hit for {damage} damage!{mastery_msg} ({uses_left} uses left)")
 
         if self.enemy.hitpoints <= 0:
             self._victory()

@@ -135,6 +135,39 @@ FOREST_ENEMIES = {
     ]
 }
 
+# Mystical Skills (Exact LORD spells)
+MYSTICAL_SPELLS = [
+    (1, "Pinch Real Hard", "Basic damage, more than normal attack"),
+    (4, "Disappear", "Guarantees a safe escape from your foe"),
+    (8, "Heat Wave", "Quite powerful, at par with a Death Knight"),
+    (12, "Light Shield", "Halves the damage you take, essential"),
+    (16, "Shatter", "Incredibly powerful, can be worth 2 DK's"),
+    (20, "Mind Heal", "Completely heal yourself!")
+]
+
+# Daily Happenings (Exact LORD text)
+DAILY_HAPPENINGS = [
+    "More children are missing today.",
+    "A small girl was missing today.",
+    "The town is in grief. Several children didn't come home today.",
+    "Dragon sighting reported today by a drunken old man.",
+    "Despair covers the land - more bloody remains have been found today.",
+    "A group of children did not return from a nature walk today.",
+    "The land is in chaos today. Will the abductions ever stop?",
+    "Dragon scales have been found in the forest today..Old or new?",
+    "Several farmers report missing cattle today.",
+    "A Child was found today! But scared deaf and dumb."
+]
+
+# Exit Quotes (Exact LORD text)
+EXIT_QUOTES = [
+    "The black thing inside rejoices at your departure.",
+    "The very earth groans at your departure.",
+    "The very trees seem to moan as you leave.",
+    "Echoing screams fill the wastelands as you close your eyes.",
+    "Your very soul aches as you wake up from your favorite dream."
+]
+
 # Class types and their abilities
 CLASS_TYPES = {
     'K': {
@@ -195,6 +228,17 @@ class Character:
     married_to: str = ""
     married: bool = False
 
+    # Skill Points (Exact LORD mechanics)
+    death_knight_points: int = 0
+    mystical_points: int = 0
+    thieving_points: int = 0
+
+    # Skill Knowledge Tracking
+    learned_spells: str = ""  # Comma-separated list of spell levels known
+
+    # Daily Skill Usage Tracking
+    skills_used_today: int = 0
+
     def __post_init__(self):
         if not self.last_played:
             self.last_played = str(date.today())
@@ -243,6 +287,66 @@ class Character:
 
             # Bank interest (10% daily)
             self.bank_gold = int(self.bank_gold * 1.10)
+
+            # Reset daily skill usage
+            self.skills_used_today = 0
+
+    def get_skill_points(self, skill_type: str) -> int:
+        """Get skill points for specific type"""
+        if skill_type == 'K':
+            return self.death_knight_points
+        elif skill_type == 'P':
+            return self.mystical_points
+        elif skill_type == 'D':
+            return self.thieving_points
+        return 0
+
+    def add_skill_points(self, skill_type: str, points: int = 1):
+        """Add skill points (max 40 for ultra-mastery)"""
+        if skill_type == 'K':
+            self.death_knight_points = min(40, self.death_knight_points + points)
+        elif skill_type == 'P':
+            self.mystical_points = min(40, self.mystical_points + points)
+        elif skill_type == 'D':
+            self.thieving_points = min(40, self.thieving_points + points)
+
+    def has_ultra_mastery(self, skill_type: str) -> bool:
+        """Check if player has ultra-mastery (40 points)"""
+        return self.get_skill_points(skill_type) >= 40
+
+    def knows_spell(self, spell_level: int) -> bool:
+        """Check if player knows a mystical spell"""
+        if not self.learned_spells:
+            return False
+        known_levels = [int(x) for x in self.learned_spells.split(',') if x.strip()]
+        return spell_level in known_levels
+
+    def learn_spell(self, spell_level: int):
+        """Learn a new mystical spell"""
+        if not self.knows_spell(spell_level):
+            if self.learned_spells:
+                self.learned_spells += f",{spell_level}"
+            else:
+                self.learned_spells = str(spell_level)
+
+    def get_available_spells(self) -> List[Tuple[int, str, str]]:
+        """Get spells available to cast based on mystical points"""
+        available = []
+        for points_needed, name, description in MYSTICAL_SPELLS:
+            if self.mystical_points >= points_needed and self.knows_spell(points_needed):
+                available.append((points_needed, name, description))
+        return available
+
+    def can_use_skill(self) -> bool:
+        """Check if player can use skill today"""
+        return self.skills_used_today < CLASS_TYPES[self.class_type]['daily_uses']
+
+    def use_skill(self):
+        """Use a skill (consume daily usage)"""
+        if self.can_use_skill():
+            self.skills_used_today += 1
+            return True
+        return False
 
 @dataclass
 class Enemy:
@@ -326,7 +430,12 @@ class GameDatabase:
                     last_played TEXT,
                     skill_uses INTEGER,
                     married_to TEXT,
-                    married BOOLEAN
+                    married BOOLEAN,
+                    death_knight_points INTEGER DEFAULT 0,
+                    mystical_points INTEGER DEFAULT 0,
+                    thieving_points INTEGER DEFAULT 0,
+                    learned_spells TEXT DEFAULT '',
+                    skills_used_today INTEGER DEFAULT 0
                 )
             """)
 
@@ -344,7 +453,7 @@ class GameDatabase:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
                 INSERT OR REPLACE INTO players VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 player.name, player.gender, player.class_type, player.level,
                 player.experience, player.hitpoints, player.max_hitpoints,
@@ -354,7 +463,9 @@ class GameDatabase:
                 player.horse, player.fairy_blessing, player.flirted_violet,
                 player.laid_today, player.inn_room, player.alive,
                 player.days_played, player.last_played, player.skill_uses,
-                player.married_to, player.married
+                player.married_to, player.married, player.death_knight_points,
+                player.mystical_points, player.thieving_points, player.learned_spells,
+                player.skills_used_today
             ))
 
     def load_player(self, name: str) -> Optional[Character]:
@@ -370,3 +481,76 @@ class GameDatabase:
         with sqlite3.connect(self.db_path) as conn:
             results = conn.execute("SELECT * FROM players ORDER BY level DESC, experience DESC").fetchall()
             return [Character(*row) for row in results]
+
+# Skill Learning Functions
+
+def death_knight_encounter(player: Character) -> Tuple[bool, str]:
+    """Death Knight castle encounter - pure random learning"""
+    if random.randint(1, 3) == 1:  # 33% chance
+        player.add_skill_points('K', 1)
+        points = player.get_skill_points('K')
+        if points >= 40:
+            return True, f"**ULTRA MASTERY!** You have achieved ultimate Death Knight mastery! ({points}/40)"
+        else:
+            return True, f"You have learned more Death Knight skills! ({points}/40)"
+    else:
+        return False, "The Death Knights reject your training this time."
+
+def mystical_learning_game(player: Character, guess: int, target: int, attempts_left: int) -> Tuple[bool, str, bool]:
+    """Mystical skills number guessing game (1-100, 6 attempts)"""
+    if guess == target:
+        # Success! Learn a skill point
+        player.add_skill_points('P', 1)
+        points = player.get_skill_points('P')
+
+        # Check if player can learn new spells
+        new_spells = []
+        for spell_points, spell_name, description in MYSTICAL_SPELLS:
+            if points >= spell_points and not player.knows_spell(spell_points):
+                player.learn_spell(spell_points)
+                new_spells.append(spell_name)
+
+        result = f"Correct! You have gained mystical knowledge! ({points}/40)"
+        if new_spells:
+            result += f"\n**NEW SPELL LEARNED:** {', '.join(new_spells)}"
+
+        if points >= 40:
+            result += "\n**ULTRA MASTERY!** Ultimate mystical mastery achieved!"
+
+        return True, result, True
+
+    elif attempts_left <= 1:
+        return False, "You have failed to grasp the mystical knowledge this time.", True
+
+    else:
+        hint = "Higher!" if guess < target else "Lower!"
+        return False, f"{hint} You have {attempts_left - 1} attempts remaining.", False
+
+def thieving_encounter(player: Character, has_gem: bool, choice: str) -> Tuple[bool, str]:
+    """Thieving skills encounter - gem-based learning"""
+    if has_gem and choice.lower().startswith('g'):  # Give gem
+        if player.gems > 0:
+            player.gems -= 1
+            player.add_skill_points('D', 1)
+            points = player.get_skill_points('D')
+
+            if points >= 40:
+                return True, f"**ULTRA MASTERY!** You have achieved ultimate Thieving mastery! ({points}/40)"
+            else:
+                return True, f"The thieves accept your gem and teach you! ({points}/40)"
+        else:
+            return False, "You don't have any gems to give!"
+
+    elif choice.lower().startswith('s'):  # Spit
+        return False, "You spit at them. They leave in disgust, but at least they didn't rob you."
+
+    else:  # Mumble or anything else
+        return False, "You mumble incoherently. The thieves shake their heads and vanish."
+
+def get_daily_happening() -> str:
+    """Get random daily happening message"""
+    return random.choice(DAILY_HAPPENINGS)
+
+def get_exit_quote() -> str:
+    """Get random exit quote"""
+    return random.choice(EXIT_QUOTES)
