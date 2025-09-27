@@ -338,7 +338,68 @@ python3 -c "from brainbot import sync_generate_quiz_question; q, a = sync_genera
 - **Expected Behavior**: Reference to original LORD if applicable
 - **Actual Behavior**: Detailed description of current state
 
-## Recent Major Updates (v0.1.0 - September 2025)
+## Recent Major Updates
+
+### ✅ v0.0.3 - Major UI/UX and Architecture Improvements (September 2025)
+
+#### **Modular Architecture Refactoring**
+Complete reorganization of codebase for maintainability and scalability:
+- **Created screens/ Directory Structure**: Organized 18 screens into logical modules
+  - `screens/combat/`: ForestScreen, CombatScreen, QuizScreen
+  - `screens/town/`: TownSquare, Inn, Weapons, Armor, Bank, Healer, etc.
+  - `screens/character/`: Creation, Selection, Stats screens
+- **36% Code Reduction**: Reduced main lov.py from 2,197 → 1,400 lines
+- **Circular Import Resolution**: Implemented delayed import pattern throughout
+- **Better Code Organization**: Each screen now in its own focused module
+
+#### **Combat UI Complete Redesign**
+Final Fantasy-style combat interface with real-time updates:
+- **Enemy/Player Status Layout**: Clean vertical sections with clear separation
+- **Unicode HP Bars**: Visual health indicators `█░░░░░░░░░ 30%` with percentage
+- **Real-time Updates**: HP bars and stats refresh during combat actions
+- **Color-Coded Stats**: Red for enemy, green for player for immediate clarity
+- **Enhanced Combat Messages**: Emoji-enhanced feedback (⚔️🔥⭐❌)
+
+#### **Functional Shop Implementation**
+Three fully working shops with authentic LORD mechanics:
+
+**Healer's Hut**:
+- Full heal option with level-based pricing (5-500 gold)
+- Partial heal option (1 gold per HP)
+- Interactive input system with validation
+
+**Ye Old Bank**:
+- Deposit/withdrawal with transaction modes
+- 10% daily compound interest system
+- "Deposit All" and "Withdraw All" shortcuts
+- Real-time gold display updates
+
+**Abdul's Armor**:
+- Progressive armor upgrades (15 tiers: Coat → Shimmering Armor)
+- Can only purchase next tier (authentic LORD restriction)
+- Defense improvement calculations and display
+- Authentic LORD pricing maintained
+
+#### **Enhanced Visual Design**
+Immersive ASCII art and color theming:
+
+**Forest Screen**:
+- Mystical forest header with 5 detailed tree canopies
+- Color-coded elements: green trees, brown trunks, white mist
+- "✦ THE MYSTICAL FOREST OF KNOWLEDGE ✦" themed title
+
+**Armor Shop**:
+- Ornate shield and crossed swords design
+- Metallic color scheme: silver shield, gold swords, cyan decorations
+- "⚔️⚜️ ABDUL'S LEGENDARY ARMORY ⚜️⚔️" professional branding
+
+#### **Critical Bug Fixes**
+- **Forest Healer Navigation**: Fixed "not yet available" message → actual healer screen
+- **TownSquare Import Crashes**: Fixed missing screen imports for Turgon's Training, etc.
+- **Combat Header Alignment**: Fixed misaligned box borders
+- **HP Bar Visibility**: Improved contrast with better character selection
+
+### ✅ v0.1.0 - Inn System (September 2025)
 
 ### ✅ Turgon's Warrior Training System
 Complete implementation of authentic LORD master progression:

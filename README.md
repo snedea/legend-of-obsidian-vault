@@ -1,4 +1,4 @@
-# Legend of the Obsidian Vault (LOV) v0.0.2
+# Legend of the Obsidian Vault (LOV) v0.0.3
 
 > **Pre-Alpha Release**: An exact clone of Legend of the Red Dragon (LORD) v4.00a with AI-powered dungeon master narratives
 
@@ -8,7 +8,7 @@ Transform your forgotten notes into epic forest battles! This authentic BBS door
 ![Python 3.9+](https://img.shields.io/badge/Python-3.9+-blue)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
-## 🎮 What Works (v0.0.2)
+## 🎮 What Works (v0.0.3)
 
 ### ✅ **Core Features**
 - **Authentic BBS Interface**: VGA/ANSI color terminal with exact LORD styling
@@ -20,6 +20,12 @@ Transform your forgotten notes into epic forest battles! This authentic BBS door
 - **Player Stats**: Leveling, hitpoints, attack/defense progression
 - **Save System**: SQLite database with persistent character data
 
+### 🏪 **Functional Shops** ⭐ NEW in v0.0.3
+- **Healer's Hut**: Full heal (level-based pricing) or partial heal (1 gold per HP)
+- **Ye Old Bank**: Deposits, withdrawals, 10% daily interest compound
+- **Abdul's Armor**: Progressive armor upgrades with authentic LORD pricing
+- **Authentic Economics**: Exact LORD pricing and progression maintained
+
 ### 🧠 **AI-Enhanced Combat** ⭐ NEW in v0.0.2
 - **Rich Dungeon Master Narratives**: AI generates immersive 4-6 sentence encounter descriptions
 - **Content-Aware Stories**: Incorporates specific details from your notes (numbers, concepts, lists)
@@ -29,6 +35,13 @@ Transform your forgotten notes into epic forest battles! This authentic BBS door
 - **Knowledge Combat**: Answer correctly for 2x damage critical hits
 - **Smart Fallback**: Enhanced fallback narratives when AI unavailable
 - **Answer Validation**: Accepts variations of correct answers
+
+### 🎨 **Enhanced UI/UX** ⭐ NEW in v0.0.3
+- **Final Fantasy-Style Combat**: Clean enemy/player status layout with real-time updates
+- **Unicode HP Bars**: Visual health indicators (█░░░░░░░░░ 30%) with percentage display
+- **Colored ASCII Art**: Immersive Forest and Armor Shop headers with vibrant themes
+- **Modular Architecture**: 36% code reduction with organized screen modules
+- **Fixed Navigation**: All shop and screen transitions now work correctly
 
 ### 📝 **Obsidian Features**
 - **Auto-Detection**: Finds vault in common locations including iCloud
@@ -41,8 +54,7 @@ Transform your forgotten notes into epic forest battles! This authentic BBS door
 This is a **pre-alpha release**. Major LORD features still need implementation:
 
 - **Inn System**: Violet flirtation, Seth's songs, bar room
-- **Shop Functionality**: Weapons/armor purchasing
-- **Banking**: Interest, deposits, withdrawals
+- **Weapons Shop**: King Arthur's Weapons purchasing (armor shop completed)
 - **PvP Combat**: Player vs player battles
 - **Daily Systems**: News, announcements, time-based events
 - **Random Events**: Olivia's head, old man, fairy encounters

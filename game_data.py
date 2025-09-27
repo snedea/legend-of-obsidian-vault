@@ -67,6 +67,13 @@ ARMOR = [
     ("Shimmering Armor", 400000000, 1800)
 ]
 
+# Healing costs by level (LORD authentic pricing)
+HEALING_COSTS = {
+    1: 5, 2: 10, 3: 20, 4: 35, 5: 50,
+    6: 75, 7: 100, 8: 150, 9: 200, 10: 300,
+    11: 400, 12: 500
+}
+
 # Experience required for each level
 LEVEL_EXP = [
     0, 100, 400, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000, 256000, 512000
