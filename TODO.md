@@ -1,13 +1,51 @@
 # TODO - Authentic LORD Implementation Roadmap
 
+## 🧠 **IMMEDIATE PRIORITY: AI Enhancement (Tomorrow's Focus)**
+
+**Mission**: Transform bland "Mosquito of My Themes Directory" encounters into epic fantasy adventures!
+
+### **🔥 Quick Wins for Tomorrow (2-3 hours each)**
+
+#### **Task 1: Enhanced Enemy Names**
+**File**: `obsidian.py` → `_generate_enemy_name()` function
+**Current**: "Mosquito of My Themes Directory" ❌
+**Target**: "Vex'thara the Memory Weaver" ✅
+
+```python
+# Add to obsidian.py:
+FANTASY_TITLES = ["Keeper", "Guardian", "Weaver", "Lord", "Wraith", "Sage"]
+MYSTICAL_PREFIXES = ["Shadow", "Crimson", "Ancient", "Forgotten", "Whisper"]
+KNOWLEDGE_THEMES = {
+    "code": "Codex", "personal": "Memory", "meeting": "Council",
+    "project": "Forge", "documentation": "Archive"
+}
+```
+
+#### **Task 2: Enemy Backstories**
+**File**: `game_data.py` → Extend Enemy class
+**Add Fields**: `backstory`, `personality_type`, `knowledge_domain`
+
+#### **Task 3: Combat Flavor Text**
+**File**: `lov.py` → `CombatScreen._victory()` and attack methods
+**Replace**: "You hit for 15 damage"
+**With**: "Your Python knowledge pierces the guardian's confusion for 15 insight!"
+
+### **📋 Detailed AI Roadmap Available**
+See `TODO_AI_ENHANCEMENT.md` for complete 4-week implementation plan
+
+---
+
 ## 🎯 **Mission: Complete LORD v4.00a Clone**
 
 Based on the official LORD FAQ, this roadmap implements **every authentic feature** from the original game.
 
-### ✅ **Working Features (v0.0.1)**
+### ✅ **Working Features (v0.0.2)**
 - Character creation (all 3 classes)
 - Forest combat with note-based enemies
-- TinyLlama AI quiz generation
+- **NEW**: Rich AI-generated dungeon master narratives
+- **NEW**: Content-aware encounter descriptions
+- **NEW**: Structured note parsing (headers, lists, numbers)
+- TinyLlama AI quiz generation and narratives
 - Obsidian vault auto-detection
 - Basic town square navigation
 - SQLite save system
@@ -354,13 +392,14 @@ Level  Stay Cost  Bribe Cost
 
 ## 🎯 **Version Milestones**
 
-- **v0.1.0**: Skills System + Turgon's Training
-- **v0.2.0**: Complete Inn System (Bartender, Violet, Seth)
-- **v0.3.0**: Dark Cloak Tavern + Fairy System + Banking
-- **v0.4.0**: Marriage, Kids, PvP Combat
-- **v0.5.0**: All 131 Monsters + Red Dragon
-- **v0.6.0**: Daily happenings, hidden keys, polish
-- **v1.0.0**: **100% Feature-Complete LORD Clone**
+- **v0.1.0**: ✅ Skills System + Turgon's Training + Hall of Honours
+- **v0.2.0**: 🧠 **AI Enhancement** - Fantasy Enemy Generation & Combat Narratives
+- **v0.3.0**: Complete Inn System (Bartender, Violet, Seth)
+- **v0.4.0**: Dark Cloak Tavern + Fairy System + Banking
+- **v0.5.0**: Marriage, Kids, PvP Combat
+- **v0.6.0**: All 131 Monsters + Red Dragon
+- **v0.7.0**: Daily happenings, hidden keys, polish
+- **v1.0.0**: **100% Feature-Complete LORD Clone with AI-Enhanced Immersion**
 
 ---
 

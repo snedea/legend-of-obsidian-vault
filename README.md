@@ -1,14 +1,14 @@
-# Legend of the Obsidian Vault (LOV) v0.0.1
+# Legend of the Obsidian Vault (LOV) v0.0.2
 
-> **Pre-Alpha Release**: An exact clone of Legend of the Red Dragon (LORD) v4.00a with intelligent Obsidian vault integration
+> **Pre-Alpha Release**: An exact clone of Legend of the Red Dragon (LORD) v4.00a with AI-powered dungeon master narratives
 
-Transform your forgotten notes into epic forest battles! This authentic BBS door game recreates the classic LORD experience while your Obsidian vault becomes a living dungeon of knowledge-based enemies.
+Transform your forgotten notes into epic forest battles! This authentic BBS door game recreates the classic LORD experience while your Obsidian vault becomes a living dungeon where AI generates rich, immersive encounters from your knowledge.
 
 ![Game Status: Pre-Alpha](https://img.shields.io/badge/Status-Pre--Alpha-orange)
 ![Python 3.9+](https://img.shields.io/badge/Python-3.9+-blue)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
-## 🎮 What Works (v0.0.1)
+## 🎮 What Works (v0.0.2)
 
 ### ✅ **Core Features**
 - **Authentic BBS Interface**: VGA/ANSI color terminal with exact LORD styling
@@ -20,11 +20,14 @@ Transform your forgotten notes into epic forest battles! This authentic BBS door
 - **Player Stats**: Leveling, hitpoints, attack/defense progression
 - **Save System**: SQLite database with persistent character data
 
-### 🧠 **AI-Enhanced Combat**
-- **Note-Based Enemies**: "Mosquito of Machine Learning" instead of generic monsters
+### 🧠 **AI-Enhanced Combat** ⭐ NEW in v0.0.2
+- **Rich Dungeon Master Narratives**: AI generates immersive 4-6 sentence encounter descriptions
+- **Content-Aware Stories**: Incorporates specific details from your notes (numbers, concepts, lists)
+- **Atmospheric World-Building**: "You enter the Algorithm Archive where 27 mystical patterns swirl..."
+- **TinyLlama Integration**: Local 1.1B parameter model for intelligent narrative generation
 - **Intelligent Questions**: AI analyzes note content for contextual quiz generation
 - **Knowledge Combat**: Answer correctly for 2x damage critical hits
-- **Smart Fallback**: Regex-based questions when AI unavailable
+- **Smart Fallback**: Enhanced fallback narratives when AI unavailable
 - **Answer Validation**: Accepts variations of correct answers
 
 ### 📝 **Obsidian Features**
@@ -45,22 +48,62 @@ This is a **pre-alpha release**. Major LORD features still need implementation:
 - **Random Events**: Olivia's head, old man, fairy encounters
 - **Marriage System**: Conjugality list and weddings
 
+## 🎭 AI Narrative Examples (v0.0.2)
+
+Experience dynamic, content-aware encounters that transform your notes into rich fantasy adventures:
+
+### Before (v0.0.1)
+```
+Enemy: Mosquito of Machine Learning
+Location: Forest clearing
+```
+
+### After (v0.0.2)
+```
+You enter the Algorithm Archive, where ancient knowledge of 'Machine Learning
+Basics' has crystallized into living code. The air crackles with 27 different
+patterns of mystical energy, each representing a layer of understanding.
+Glowing runes spell out the eternal truth: 'Machine learning automates
+analytical model building' as spectral frameworks stand sentinel over
+accumulated wisdom.
+
+Enemy: Guardian of Machine Learning    Location: Algorithm Archive
+```
+
+✨ **What Makes It Special:**
+- Incorporates **specific numbers** from your notes (27, 5 layers, 1000 examples)
+- References **actual concepts** from content (neural networks, frameworks)
+- Weaves **note text** into magical fantasy descriptions
+- Creates **atmospheric world-building** unique to each note
+
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Python 3.9+**
+- **Python 3.7+**
 - **Terminal with 256 color support**
 - **Obsidian vault** (optional but recommended)
 
-### Installation
+### Easy Installation (Recommended)
 
 ```bash
-# Clone the repository
-git clone https://github.com/snedea/legend-of-obsidian-vault.git
-cd legend-of-obsidian-vault
+# Mac/Linux - One-click setup and launch
+./run.sh
 
+# Windows - One-click setup and launch
+run.bat
+```
+
+The launcher scripts automatically:
+- ✅ Install all dependencies
+- ✅ Download AI models
+- ✅ Create save directories
+- ✅ Launch the game
+
+### Manual Installation
+
+```bash
 # Install dependencies
-pip install -r requirements.txt
+python3 setup.py
 
 # Run the game
 python3 lov.py
@@ -175,7 +218,8 @@ Test your knowledge for bonus damage!
 ## 📊 Development Status
 
 ### Version Roadmap
-- **v0.0.1** (current): Core combat + Obsidian integration
+- **v0.0.1**: Core combat + Obsidian integration
+- **v0.0.2** (current): AI-powered dungeon master narratives
 - **v0.1.0**: Inn features (Violet, Seth, bar room)
 - **v0.2.0**: Complete shop functionality
 - **v0.3.0**: Banking and daily systems
