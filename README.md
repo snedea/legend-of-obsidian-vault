@@ -36,7 +36,12 @@ Transform your forgotten notes into epic forest battles! This authentic BBS door
 - **Smart Fallback**: Enhanced fallback narratives when AI unavailable
 - **Answer Validation**: Accepts variations of correct answers
 
-### 🎨 **Enhanced UI/UX**
+### 🎨 **Enhanced UI/UX (v0.0.5)**
+- **Beautiful Red Borders**: Professional Container styling on key screens with border titles
+- **Interactive Buttons**: Converted static text to clickable buttons for better UX
+- **Enhanced Violet's Room**: Gorgeous red borders with romantic theme and button interactions
+- **Professional Stats Screen**: Container wrapper with organized layout and navigation buttons
+- **Improved Other Places**: Clean layout with red borders and organized IGM navigation
 - **Final Fantasy-Style Combat**: Clean enemy/player status layout with real-time updates
 - **Unicode HP Bars**: Visual health indicators (█░░░░░░░░░ 30%) with percentage display
 - **Colored ASCII Art**: Immersive Forest and Armor Shop headers with vibrant themes
@@ -101,6 +106,18 @@ Accessible via "Other Places" from Town Square:
   - Success based on thieving skill + level
   - Steal 10-30% of total bank deposits
   - Heavy penalties for failure (lose half gold, kicked out)
+
+#### **📚 Barak's House of Knowledge (v0.0.5)**
+- **Gorgeous ASCII Art Design**: Ornate borders with scholarly theme (📚🏠📖📜✨)
+- **Japanese-Style Banner**: 「Scholar's Sanctuary & Learning Den」with professional styling
+- **Three Learning Activities**:
+  - **(R)ead Ancient Books**: Choose from 5 different book titles for varied experience
+  - **(S)tudy Combat Techniques**: Practice sword work, defensive stances, charm training
+  - **(T)alk to Barak**: Receive 6 different lore messages about mystical arts and treasures
+- **Immersive Notifications**: Rich content variety for engaging roleplay experience
+- **Stable Operation**: Crash-free implementation following IGM screen best practices
+
+⚠️ **Known Limitation**: Due to IGM screen technical constraints, Barak's House provides immersive learning experiences with detailed notifications, but cannot modify actual player stats. For real stat progression, use working systems like shops, combat, and other town locations.
 
 ## 🚧 Remaining Features (See TODO.md)
 
@@ -282,6 +299,34 @@ Test your knowledge for bonus damage!
 - **Authentic Prices**: Exact LORD weapon/armor costs
 - **Random Generation**: Maintains LORD's RNG patterns
 - **Classic Text**: Original dialog and descriptions
+
+## ⚠️ Technical Limitations & Known Issues
+
+### IGM Screen Stat Modification Constraints
+During development of enhanced IGM screens, we discovered fundamental limitations with player data access:
+
+**Problem**: IGM (In-Game Module) screens cannot reliably modify player statistics without causing application crashes.
+
+**Root Cause**: Accessing `lov.current_player` attributes in IGM screen methods triggers crashes, likely due to:
+- Threading conflicts with the database
+- Circular import dependencies
+- Screen lifecycle management issues
+- Memory access violations
+
+**Affected Systems**:
+- ✅ **Town Screens**: Shops, Healer, Bank, etc. work perfectly with stat modifications
+- ✅ **Combat System**: Full stat changes work correctly
+- ❌ **IGM Screens**: Barak's House, potential future training locations
+
+**Workaround**: IGM screens provide rich immersive experiences with detailed notifications but cannot modify actual stats. This maintains stability while preserving the authentic LORD experience.
+
+**For Real Stat Increases**: Use the working systems:
+- **Healer's Hut**: Restore hitpoints
+- **Abdul's Armor/Weapons**: Equipment upgrades
+- **Combat**: Level progression and experience
+- **Town Activities**: Proven stat modification systems
+
+This limitation affects only cosmetic training locations and doesn't impact core game functionality.
 
 ## 📊 Development Status
 
