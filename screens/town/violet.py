@@ -3,7 +3,8 @@ Violet's Room screen for Legend of the Obsidian Vault
 """
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import Static
+from textual.widgets import Static, Button
+from textual.containers import Container
 from textual import events
 
 
@@ -18,56 +19,102 @@ class VioletRoomScreen(Screen):
         # Check if Violet is married
         if lov.game_db.is_violet_married():
             husband_name = lov.game_db.get_violet_husband()
-            yield Static("💒 Violet's Room", classes="header")
-            yield Static("=-" * 30, classes="separator")
-            yield Static("")
-            yield Static("You enter Violet's room, but instead of the lovely")
-            yield Static("Violet, you find Grizelda, the Inn's cleaning woman!")
-            yield Static("")
-            yield Static(f"'Violet? She married {husband_name} and moved away.'")
-            yield Static("'Now get out of here before I call the guards!'")
-            yield Static("")
-            yield Static("(Q) Leave quickly")
+
+            with Container(classes="main-border") as container:
+                container.border_title = "💒 VIOLET'S ROOM 💒"
+                container.border_subtitle = "💔 Love Lost 💔"
+
+                yield Static("💒 Violet's Room", classes="header")
+                yield Static("=-" * 30, classes="separator")
+                yield Static("")
+                yield Static("You enter Violet's room, but instead of the lovely")
+                yield Static("Violet, you find Grizelda, the Inn's cleaning woman!")
+                yield Static("")
+                yield Static(f"'Violet? She married {husband_name} and moved away.'")
+                yield Static("'Now get out of here before I call the guards!'")
+                yield Static("")
+                yield Button("(Q) Leave quickly", id="leave_quick")
         else:
-            yield Static("💜 Violet's Room", classes="header")
-            yield Static("=-" * 30, classes="separator")
-            yield Static("")
-            yield Static("You enter Violet's room. The beautiful barmaid")
-            yield Static("looks up at you with sparkling eyes...")
-            yield Static("")
-            yield Static(f"Your charm: {lov.current_player.charm}")
-            yield Static("")
+            with Container(classes="main-border") as container:
+                container.border_title = "💜 VIOLET'S ROOM 💜"
+                container.border_subtitle = "💕 Romance & Charm 💕"
 
-            # Show available flirting options based on charm
-            available_options = []
-            for charm_req, option_data in VIOLET_FLIRT_OPTIONS.items():
-                if lov.current_player.charm >= charm_req:
-                    available_options.append((charm_req, option_data))
-
-            if not available_options:
-                yield Static("Violet looks at you with mild interest, but")
-                yield Static("you lack the charm to do anything...")
+                yield Static("💜 Violet's Room", classes="header")
+                yield Static("=-" * 30, classes="separator")
                 yield Static("")
-                yield Static("(Q) Leave disappointed")
-            else:
-                yield Static("What would you like to do?")
+                yield Static("You enter Violet's room. The beautiful barmaid")
+                yield Static("looks up at you with sparkling eyes...")
+                yield Static("")
+                yield Static(f"Your charm: {lov.current_player.charm}", classes="stats")
                 yield Static("")
 
-                # Show options with hotkeys
-                hotkey = 1
-                for charm_req, option_data in sorted(available_options):
-                    action = option_data["action"]
-                    if charm_req == 100:
-                        # Special handling for marriage
-                        if lov.current_player.married_to:
-                            continue  # Skip if already married
-                        yield Static(f"({hotkey}) {action} (Charm: {charm_req})")
-                    else:
-                        yield Static(f"({hotkey}) {action} (Charm: {charm_req})")
-                    hotkey += 1
+                # Show available flirting options based on charm
+                available_options = []
+                for charm_req, option_data in VIOLET_FLIRT_OPTIONS.items():
+                    if lov.current_player.charm >= charm_req:
+                        available_options.append((charm_req, option_data))
 
-                yield Static("")
-                yield Static("(Q) Leave gracefully")
+                if not available_options:
+                    yield Static("Violet looks at you with mild interest, but")
+                    yield Static("you lack the charm to do anything...")
+                    yield Static("")
+                    yield Button("(Q) Leave disappointed", id="leave_disappointed")
+                else:
+                    yield Static("What would you like to do?")
+                    yield Static("")
+
+                    # Show options with hotkeys as buttons
+                    hotkey = 1
+                    for charm_req, option_data in sorted(available_options):
+                        action = option_data["action"]
+                        if charm_req == 100:
+                            # Special handling for marriage
+                            if lov.current_player.married_to:
+                                continue  # Skip if already married
+                            yield Button(f"({hotkey}) {action} (Charm: {charm_req})",
+                                       id=f"flirt_{hotkey}")
+                        else:
+                            yield Button(f"({hotkey}) {action} (Charm: {charm_req})",
+                                       id=f"flirt_{hotkey}")
+                        hotkey += 1
+
+                    yield Static("")
+                    yield Button("(Q) Leave gracefully", id="leave_graceful")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Handle button presses for touchscreen/mouse support"""
+        # Delayed import to avoid circular dependency
+        import lov
+        from game_data import VIOLET_FLIRT_OPTIONS
+
+        button_id = event.button.id
+
+        if button_id in ["leave_quick", "leave_disappointed", "leave_graceful"]:
+            self.app.pop_screen()
+            return
+
+        # Handle flirting buttons
+        if button_id.startswith("flirt_"):
+            try:
+                option_num = int(button_id.split("_")[1])
+
+                # Get available options
+                available_options = []
+                for charm_req, option_data in VIOLET_FLIRT_OPTIONS.items():
+                    if lov.current_player.charm >= charm_req:
+                        if charm_req == 100 and lov.current_player.married_to:
+                            continue  # Skip marriage if already married
+                        available_options.append((charm_req, option_data))
+
+                # Check if option number is valid
+                if 1 <= option_num <= len(available_options):
+                    selected_option = sorted(available_options)[option_num - 1]
+                    charm_req, option_data = selected_option
+
+                    # Handle the flirting action
+                    self._handle_flirt_action(charm_req, option_data)
+            except (ValueError, IndexError):
+                pass
 
     def on_key(self, event: events.Key) -> None:
         # Delayed import to avoid circular dependency
