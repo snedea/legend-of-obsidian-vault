@@ -1,14 +1,14 @@
-# Legend of the Obsidian Vault (LOV) v0.0.3
+# Legend of the Obsidian Vault (LOV) v0.0.4
 
-> **Pre-Alpha Release**: An exact clone of Legend of the Red Dragon (LORD) v4.00a with AI-powered dungeon master narratives
+> **Alpha Release**: Complete LORD Secrets implementation with all hidden features and authentic BBS experience
 
 Transform your forgotten notes into epic forest battles! This authentic BBS door game recreates the classic LORD experience while your Obsidian vault becomes a living dungeon where AI generates rich, immersive encounters from your knowledge.
 
-![Game Status: Pre-Alpha](https://img.shields.io/badge/Status-Pre--Alpha-orange)
+![Game Status: Alpha](https://img.shields.io/badge/Status-Alpha-brightgreen)
 ![Python 3.9+](https://img.shields.io/badge/Python-3.9+-blue)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
-## 🎮 What Works (v0.0.3)
+## 🎮 What Works (v0.0.4)
 
 ### ✅ **Core Features**
 - **Authentic BBS Interface**: VGA/ANSI color terminal with exact LORD styling
@@ -20,13 +20,13 @@ Transform your forgotten notes into epic forest battles! This authentic BBS door
 - **Player Stats**: Leveling, hitpoints, attack/defense progression
 - **Save System**: SQLite database with persistent character data
 
-### 🏪 **Functional Shops** ⭐ NEW in v0.0.3
+### 🏪 **Functional Shops**
 - **Healer's Hut**: Full heal (level-based pricing) or partial heal (1 gold per HP)
-- **Ye Old Bank**: Deposits, withdrawals, 10% daily interest compound
+- **Ye Old Bank**: Deposits, withdrawals, 10% daily interest compound (+ hidden robbery for thieves!)
 - **Abdul's Armor**: Progressive armor upgrades with authentic LORD pricing
 - **Authentic Economics**: Exact LORD pricing and progression maintained
 
-### 🧠 **AI-Enhanced Combat** ⭐ NEW in v0.0.2
+### 🧠 **AI-Enhanced Combat**
 - **Rich Dungeon Master Narratives**: AI generates immersive 4-6 sentence encounter descriptions
 - **Content-Aware Stories**: Incorporates specific details from your notes (numbers, concepts, lists)
 - **Atmospheric World-Building**: "You enter the Algorithm Archive where 27 mystical patterns swirl..."
@@ -36,7 +36,7 @@ Transform your forgotten notes into epic forest battles! This authentic BBS door
 - **Smart Fallback**: Enhanced fallback narratives when AI unavailable
 - **Answer Validation**: Accepts variations of correct answers
 
-### 🎨 **Enhanced UI/UX** ⭐ NEW in v0.0.3
+### 🎨 **Enhanced UI/UX**
 - **Final Fantasy-Style Combat**: Clean enemy/player status layout with real-time updates
 - **Unicode HP Bars**: Visual health indicators (█░░░░░░░░░ 30%) with percentage display
 - **Colored ASCII Art**: Immersive Forest and Armor Shop headers with vibrant themes
@@ -49,16 +49,69 @@ Transform your forgotten notes into epic forest battles! This authentic BBS door
 - **Difficulty Scaling**: Note age influences enemy strength
 - **Real-time Display**: Shows vault status and note count in forest
 
-## 🚧 What's Missing (See TODO.md)
+### 🎭 **LORD Secrets Features** ⭐ NEW in v0.0.4
 
-This is a **pre-alpha release**. Major LORD features still need implementation:
+Experience the complete, authentic LORD underground with all hidden features and secret systems!
 
-- **Inn System**: Violet flirtation, Seth's songs, bar room
-- **Weapons Shop**: King Arthur's Weapons purchasing (armor shop completed)
-- **PvP Combat**: Player vs player battles
-- **Daily Systems**: News, announcements, time-based events
-- **Random Events**: Olivia's head, old man, fairy encounters
-- **Marriage System**: Conjugality list and weddings
+#### **🌟 Hidden Command Systems**
+- **Jennie Codes**: 13 secret commands in Forest (LADY, BABE, SEXY, FOXY, HOTT, FAIR, DUNG, UGLY, DUMB, STAR, NICE, COOL, GIFT)
+  - Requires high spirits to activate
+  - Special frog transformation mechanics (DUNG code)
+  - Gold, stat boosts, extra fights, and mystical rewards
+
+#### **🏰 In-Game Modules (IGMs)**
+Accessible via "Other Places" from Town Square:
+
+- **LORD Cavern**: Daily exploration system with Riddler encounters
+  - 3 daily searches for treasures and stat boosts
+  - 5 unique riddles with valuable rewards
+  - Random encounters with gold, gems, and ancient power
+
+- **Barak's House**: Scholar sanctuary and gambling den
+  - Read ancient books for intelligence and stat gains
+  - Practice combat techniques for random improvements
+  - Basement dice games with high-stakes gambling
+
+- **Fairy Garden**: Learn mystical healing arts
+  - Purchase Fairy Lore (1000 gold) for combat healing
+  - Heal 25-40% max HP during battles with (H)eal command
+  - Practice sessions and advanced training available
+
+- **Xenon's Storage Facility**: Strategic resource management
+  - Store gold/gems with 5% daily fees
+  - Purchase and name horses (500 gold)
+  - Dark trading: Exchange children for gold, gems, or stat boosts
+
+- **WereWolf Den**: Primal transformation curse
+  - Learn werewolf curse (5000 gold) for PvP enhancement
+  - Transform for +50% STR/DEF during combat
+  - Steal 10% of defeated opponents' stats permanently
+  - Risk: 20% chance of losing control each transformation
+
+#### **🌌 Dimensional Travel**
+- **Gateway Portal**: Access to scripted adventure realms
+  - **Zycho Zircus**: Carnival games, freakshow encounters, ringmaster challenges
+  - **Death's Mansion**: Meet Death himself, haunted rooms, forbidden knowledge
+  - **Random Portals**: Completely unpredictable adventures across infinite realms
+  - Portal activation costs 1 gem per destination
+
+#### **🦹 Advanced Criminal Activities**
+- **Bank Robbery** (Thief + Fairy Lore required)
+  - Hidden (R)ob command in Ye Old Bank
+  - Success based on thieving skill + level
+  - Steal 10-30% of total bank deposits
+  - Heavy penalties for failure (lose half gold, kicked out)
+
+## 🚧 Remaining Features (See TODO.md)
+
+This is now an **alpha release** with all major LORD Secrets implemented! Remaining features:
+
+- **Inn System**: Violet flirtation, Seth's songs, bar room interactions
+- **Weapons Shop**: King Arthur's Weapons purchasing system
+- **PvP Combat**: Player vs player battle system (framework ready for werewolf stat stealing)
+- **Daily Systems**: News announcements and time-based events
+- **Random Events**: Olivia's head, old man encounters
+- **Marriage System**: Conjugality list and wedding ceremonies
 
 ## 🎭 AI Narrative Examples (v0.0.2)
 
@@ -201,10 +254,13 @@ Test your knowledge for bonus damage!
 ## 🏗️ Architecture
 
 ### Core Files
-- **`lov.py`**: Main Textual application and screens
+- **`lov.py`**: Main Textual application and core screens
 - **`game_data.py`**: Character, weapons, armor, database
 - **`obsidian.py`**: Vault scanning and note processing
 - **`brainbot.py`**: TinyLlama AI integration
+- **`screens/igm/`**: Complete In-Game Module system (8 IGM locations)
+- **`screens/combat/`**: Combat and forest exploration
+- **`screens/town/`**: Town Square and all shop systems
 
 ### Technology Stack
 - **Textual**: Modern terminal UI framework
@@ -230,21 +286,22 @@ Test your knowledge for bonus damage!
 ## 📊 Development Status
 
 ### Version Roadmap
-- **v0.0.1**: Core combat + Obsidian integration
-- **v0.0.2** (current): AI-powered dungeon master narratives
+- **v0.0.1**: Core combat + Obsidian integration ✅
+- **v0.0.2**: AI-powered dungeon master narratives ✅
+- **v0.0.3**: Complete shop functionality ✅
+- **v0.0.4** (current): Complete LORD Secrets implementation ✅
 - **v0.1.0**: Inn features (Violet, Seth, bar room)
-- **v0.2.0**: Complete shop functionality
-- **v0.3.0**: Banking and daily systems
-- **v0.4.0**: PvP combat and rankings
-- **v0.5.0**: Random events and special encounters
-- **v1.0.0**: Feature-complete LORD clone
+- **v0.2.0**: PvP combat system (werewolf framework ready)
+- **v0.3.0**: Daily systems and random events
+- **v0.4.0**: Marriage system and conjugality
+- **v1.0.0**: Feature-complete LORD clone with all original content
 
 ### Known Issues
-- Shop purchasing not implemented
-- Inn interactions missing
-- Bank transactions non-functional
-- PvP system placeholder only
+- Weapons shop purchasing not implemented (armor shop functional)
+- Inn interactions missing (Violet, Seth, bar room)
+- PvP system placeholder only (werewolf framework ready)
 - Daily news/events missing
+- Marriage system not implemented
 
 ## 🤝 Contributing
 

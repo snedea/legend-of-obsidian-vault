@@ -96,7 +96,12 @@ class CombatScreen(Screen):
         # Commands Section
         yield Static("", classes="separator")
         yield Static("⚔️  BATTLE COMMANDS  ⚔️", classes="combat-commands")
-        yield Static("(A)ttack  (K)nowledge Quiz  (S)skill  (R)un Away", classes="combat-commands")
+        # Build command text based on player abilities
+        commands = "(A)ttack  (K)nowledge Quiz  (S)skill"
+        if lov.current_player.fairy_lore:
+            commands += "  (H)eal"
+        commands += "  (R)un Away"
+        yield Static(commands, classes="combat-commands")
 
         # Combat Log and Input
         yield Static("", classes="separator")
@@ -213,6 +218,11 @@ class CombatScreen(Screen):
                 self._skill_attack()
             else:
                 self._show_stats()
+        elif key == "H":
+            if lov.current_player.fairy_lore:
+                self._fairy_heal()
+            else:
+                self._show_feedback("You don't know Fairy Lore healing!")
         elif key == "R":
             self._run_away()
 
@@ -461,6 +471,36 @@ class CombatScreen(Screen):
             self._victory()
         else:
             self._enemy_attack()
+
+    def _fairy_heal(self):
+        """Use Fairy Lore to heal during combat"""
+        # Delayed import to avoid circular dependency
+        import lov
+
+        # Calculate healing amount (25-40% of max HP)
+        max_heal = int(lov.current_player.max_hitpoints * 0.40)
+        min_heal = int(lov.current_player.max_hitpoints * 0.25)
+        heal_amount = random.randint(min_heal, max_heal)
+
+        # Ensure we don't overheal
+        old_hp = lov.current_player.hitpoints
+        lov.current_player.hitpoints = min(lov.current_player.max_hitpoints,
+                                          lov.current_player.hitpoints + heal_amount)
+        actual_heal = lov.current_player.hitpoints - old_hp
+
+        # Generate healing narrative
+        healing_messages = [
+            f"✨ Fairy magic flows through you, restoring {actual_heal} HP!",
+            f"🧚‍♀️ The fairy's blessing heals you for {actual_heal} HP!",
+            f"💫 Ancient healing arts restore {actual_heal} of your life force!",
+            f"🌟 Mystical energies mend your wounds for {actual_heal} HP!"
+        ]
+
+        healing_message = random.choice(healing_messages)
+        self._refresh_combat_display(healing_message)
+
+        # Enemy gets a turn to attack after healing
+        self._enemy_attack()
 
     def _enemy_attack(self):
         # Delayed import to avoid circular dependency

@@ -95,8 +95,9 @@ class TownSquareScreen(Screen):
             # NotesViewerScreen is still in main lov module
             self.app.push_screen(lov.NotesViewerScreen())
         elif action == "other":
-            # HallOfHonoursScreen is still in main lov module
-            self.app.push_screen(lov.HallOfHonoursScreen())
+            # Other Places IGM menu
+            from screens.igm.other_places import OtherPlacesScreen
+            self.app.push_screen(OtherPlacesScreen())
         elif action == "quit":
             lov.game_db.save_player(lov.current_player)
             self.app.pop_screen()

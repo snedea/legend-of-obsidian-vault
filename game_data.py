@@ -291,6 +291,24 @@ class Character:
     total_kills: int = 0
     hall_of_honours_entry: str = ""  # Date of first dragon kill
 
+    # LORD Secrets features
+    fairy_lore: bool = False  # Can heal during combat
+    spirit_level: str = "normal"  # For Jennie codes (normal, high, low)
+    cavern_searches_today: int = 0  # Daily LORD Cavern searches
+    children: int = 0  # Number of children (strategic resource)
+    horse_name: str = ""  # Horse name for storage/trading
+    werewolf_uses_today: int = 0  # Daily werewolf transformation limit
+    bank_robberies_today: int = 0  # Daily bank robbery attempts
+    successful_robberies: int = 0  # Total successful bank robberies
+
+    # Xenon's Storage fields
+    stored_gold: int = 0  # Gold stored at Xenon's facility
+    stored_gems: int = 0  # Gems stored at Xenon's facility
+
+    # WereWolf Transformation fields
+    is_werewolf: bool = False  # Has the werewolf curse
+    werewolf_transformations: int = 0  # Total transformations performed
+
     def __post_init__(self):
         if not self.last_played:
             self.last_played = str(date.today())

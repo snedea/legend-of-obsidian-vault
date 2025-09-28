@@ -329,6 +329,329 @@ class LordApp(App):
         color: ansi_white;
         background: black;
     }
+
+    /* LORD Cavern Styles */
+    .cavern-title {
+        color: ansi_bright_yellow;
+        background: black;
+        text-style: bold;
+    }
+
+    .cavern-cave {
+        color: ansi_yellow;
+        background: black;
+        text-style: bold;
+    }
+
+    .cavern-shadow {
+        color: ansi_white;
+        background: black;
+    }
+
+    .cavern-ground {
+        color: ansi_green;
+        background: black;
+    }
+
+    .cavern-content {
+        color: ansi_bright_green;
+        background: black;
+    }
+
+    .cavern-status {
+        color: ansi_bright_green;
+        background: black;
+        text-style: bold;
+    }
+
+    .cavern-location-commands {
+        color: ansi_magenta;
+        background: black;
+    }
+
+    .cavern-prompt {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    /* Barak's House Styles */
+    .barak-title {
+        color: ansi_bright_yellow;
+        background: black;
+        text-style: bold;
+    }
+
+    .barak-border {
+        color: ansi_white;
+        background: black;
+    }
+
+    .barak-decoration {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    .barak-banner {
+        color: ansi_bright_yellow;
+        background: black;
+        text-style: bold;
+    }
+
+    .barak-content {
+        color: ansi_bright_green;
+        background: black;
+    }
+
+    .barak-status {
+        color: ansi_bright_green;
+        background: black;
+        text-style: bold;
+    }
+
+    .barak-location-commands {
+        color: ansi_magenta;
+        background: black;
+    }
+
+    .barak-prompt {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    /* Other Places Menu Styles */
+    .other-title {
+        color: ansi_bright_yellow;
+        background: black;
+        text-style: bold;
+    }
+
+    .other-border {
+        color: ansi_white;
+        background: black;
+    }
+
+    .other-subtitle {
+        color: ansi_bright_cyan;
+        background: black;
+        text-style: italic;
+    }
+
+    .other-content {
+        color: ansi_bright_green;
+        background: black;
+    }
+
+    .other-coming-soon {
+        color: ansi_bright_black;
+        background: black;
+        text-style: italic;
+    }
+
+    .other-status {
+        color: ansi_bright_green;
+        background: black;
+        text-style: bold;
+    }
+
+    .other-location-commands {
+        color: ansi_magenta;
+        background: black;
+    }
+
+    .other-prompt {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    /* Fairy Garden Styles */
+    .fairy-title {
+        color: ansi_bright_magenta;
+        background: black;
+        text-style: bold;
+    }
+
+    .fairy-decoration {
+        color: ansi_bright_yellow;
+        background: black;
+    }
+
+    .fairy-border {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    .fairy-banner {
+        color: ansi_bright_magenta;
+        background: black;
+        text-style: bold;
+    }
+
+    .fairy-ground {
+        color: ansi_green;
+        background: black;
+    }
+
+    .fairy-content {
+        color: ansi_bright_green;
+        background: black;
+    }
+
+    .fairy-status {
+        color: ansi_bright_green;
+        background: black;
+        text-style: bold;
+    }
+
+    .fairy-location-commands {
+        color: ansi_magenta;
+        background: black;
+    }
+
+    .fairy-prompt {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    /* Xenon's Storage Styles */
+    .xenon-title {
+        color: ansi_bright_yellow;
+        background: black;
+        text-style: bold;
+    }
+
+    .xenon-border {
+        color: ansi_bright_white;
+        background: black;
+    }
+
+    .xenon-decoration {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    .xenon-ground {
+        color: ansi_green;
+        background: black;
+    }
+
+    .xenon-content {
+        color: ansi_bright_green;
+        background: black;
+    }
+
+    .xenon-status {
+        color: ansi_bright_green;
+        background: black;
+        text-style: bold;
+    }
+
+    .xenon-location-commands {
+        color: ansi_magenta;
+        background: black;
+    }
+
+    .xenon-prompt {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    /* WereWolf Den Styles */
+    .werewolf-title {
+        color: ansi_bright_red;
+        background: black;
+        text-style: bold;
+    }
+
+    .werewolf-decoration {
+        color: ansi_bright_yellow;
+        background: black;
+    }
+
+    .werewolf-border {
+        color: ansi_bright_white;
+        background: black;
+    }
+
+    .werewolf-banner {
+        color: ansi_bright_red;
+        background: black;
+        text-style: bold;
+    }
+
+    .werewolf-ground {
+        color: ansi_red;
+        background: black;
+    }
+
+    .werewolf-content {
+        color: ansi_bright_green;
+        background: black;
+    }
+
+    .werewolf-status {
+        color: ansi_bright_green;
+        background: black;
+        text-style: bold;
+    }
+
+    .werewolf-location-commands {
+        color: ansi_magenta;
+        background: black;
+    }
+
+    .werewolf-prompt {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    /* Gateway Portal Styles */
+    .gateway-title {
+        color: ansi_bright_magenta;
+        background: black;
+        text-style: bold;
+    }
+
+    .gateway-decoration {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    .gateway-border {
+        color: ansi_bright_white;
+        background: black;
+    }
+
+    .gateway-banner {
+        color: ansi_bright_magenta;
+        background: black;
+        text-style: bold;
+    }
+
+    .gateway-ground {
+        color: ansi_blue;
+        background: black;
+    }
+
+    .gateway-content {
+        color: ansi_bright_green;
+        background: black;
+    }
+
+    .gateway-status {
+        color: ansi_bright_green;
+        background: black;
+        text-style: bold;
+    }
+
+    .gateway-location-commands {
+        color: ansi_magenta;
+        background: black;
+    }
+
+    .gateway-prompt {
+        color: ansi_bright_cyan;
+        background: black;
+    }
     """
 
     BINDINGS = [
