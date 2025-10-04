@@ -379,6 +379,7 @@ MIT License - see LICENSE file for details.
 ## 🎪 Credits
 
 - **Original LORD**: Seth Able Robinson
+- **LORD Combat Formula**: [RT Soft LORD FAQ](https://www.rtsoft.com/pages/lordfaq.php)
 - **Textual Framework**: Textualize.io
 - **TinyLlama Model**: Microsoft Research
 - **BrainBot Integration**: Inspired by local AI development

@@ -92,11 +92,21 @@ class Character:
 
 **Combat Formulas**
 ```python
-def calculate_damage(self, attacker, defender):
-    # Exact LORD damage calculation
-    base_damage = random.randint(1, attacker.attack_power)
-    defense_reduction = defender.defense_power // 2
-    return max(1, base_damage - defense_reduction)
+# Authentic LORD v4.00a Formula:
+# HIT_AMOUNT = (strength / 2) + random(strength / 2) - defence
+# If negative, the attack MISSES
+
+def player_attacks_enemy(player, enemy):
+    # Monsters have NO defense in LORD
+    strength = player.attack_power
+    hit_amount = (strength // 2) + random.randint(0, strength // 2)
+    return hit_amount if hit_amount > 0 else "MISS"
+
+def enemy_attacks_player(enemy, player):
+    strength = enemy.attack
+    defense = player.defense_power
+    hit_amount = (strength // 2) + random.randint(0, strength // 2) - defense
+    return hit_amount if hit_amount > 0 else "MISS"
 ```
 
 ### 3. Obsidian Integration (obsidian.py)
@@ -1143,3 +1153,20 @@ werewolf_transformations: int = 0  # Total transformations performed
 This v0.0.4 release represents the completion of the most comprehensive LORD Secrets implementation ever created, transforming Legend of the Obsidian Vault into the definitive authentic BBS gaming experience with modern AI enhancements.
 
 This project serves as both a nostalgic gaming experience and a demonstration of how AI can enhance classic gameplay without compromising authenticity. The architecture balances modern Python practices with faithful recreation of 1990s BBS gaming culture.
+
+## Credits & References
+
+### Original Game
+- **Legend of the Red Dragon (LORD)**: Created by Seth Able Robinson
+- **Combat Formula Source**: [RT Soft LORD FAQ](https://www.rtsoft.com/pages/lordfaq.php) - Provided the authentic LORD v4.00a combat math formula
+
+### Technical Implementations
+- **Authentic Combat Math**: `HIT_AMOUNT = (strength/2) + random(strength/2) - defence`
+  - Source: RT Soft LORD FAQ
+  - Monsters have no defense in LORD combat
+  - Negative hit amounts result in misses
+
+### Development Tools
+- **Textual Framework**: Modern Python TUI framework
+- **TinyLlama**: Local AI integration for narrative generation
+- **SQLite**: Player persistence and game state management

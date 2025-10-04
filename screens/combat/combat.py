@@ -368,17 +368,27 @@ class CombatScreen(Screen):
 
         """Player normal attack"""
         try:
-            damage = random.randint(1, lov.current_player.attack_power)
-            self.enemy.hitpoints -= damage
+            # Authentic LORD v4.00a formula: HIT_AMOUNT = (strength/2) + random(strength/2) - defence
+            # Monsters have NO defense in LORD
+            strength = lov.current_player.attack_power
+            hit_amount = (strength // 2) + random.randint(0, strength // 2)
 
-            # Generate narrative attack message
-            attack_message = self._generate_attack_narrative(damage, "normal")
-            self._refresh_combat_display(f"⚔️ {attack_message}")
-
-            if self.enemy.hitpoints <= 0:
-                self._victory()
-            else:
+            if hit_amount <= 0:
+                # MISS!
+                self._refresh_combat_display(f"❌ You swing wildly and MISS!")
                 self._enemy_attack()
+            else:
+                damage = hit_amount
+                self.enemy.hitpoints -= damage
+
+                # Generate narrative attack message
+                attack_message = self._generate_attack_narrative(damage, "normal")
+                self._refresh_combat_display(f"⚔️ {attack_message}")
+
+                if self.enemy.hitpoints <= 0:
+                    self._victory()
+                else:
+                    self._enemy_attack()
 
         except Exception as e:
             self.notify(f"Combat error: {str(e)}")
@@ -503,16 +513,24 @@ class CombatScreen(Screen):
 
         """Enemy attacks player"""
         try:
-            damage = random.randint(1, self.enemy.attack)
-            damage = max(1, damage - (lov.current_player.defense_power // 2))
-            lov.current_player.hitpoints -= damage
+            # Authentic LORD v4.00a formula: HIT_AMOUNT = (strength/2) + random(strength/2) - defence
+            strength = self.enemy.attack
+            defense = lov.current_player.defense_power
+            hit_amount = (strength // 2) + random.randint(0, strength // 2) - defense
 
-            # Generate narrative enemy attack message
-            attack_message = self._generate_enemy_attack_narrative(damage)
-            self._refresh_combat_display(f"🔥 {attack_message}")
+            if hit_amount <= 0:
+                # Enemy MISSES!
+                self._refresh_combat_display(f"✨ The enemy's attack is deflected by your defenses!")
+            else:
+                damage = hit_amount
+                lov.current_player.hitpoints -= damage
 
-            if lov.current_player.hitpoints <= 0:
-                self._defeat()
+                # Generate narrative enemy attack message
+                attack_message = self._generate_enemy_attack_narrative(damage)
+                self._refresh_combat_display(f"🔥 {attack_message}")
+
+                if lov.current_player.hitpoints <= 0:
+                    self._defeat()
 
         except Exception as e:
             self.notify(f"Enemy attack error: {str(e)}")
