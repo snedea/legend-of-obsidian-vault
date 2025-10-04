@@ -380,7 +380,6 @@ class ObsidianVault:
             print(f"🚫 AI not available for {note.title} - using fallback generation")
             return None
 
-        print(f"✅ AI available for {note.title} - generating content")
 
         try:
             # Random content sampling for large notes
@@ -990,7 +989,39 @@ class ObsidianVault:
             base = random.choice(base_narratives)
             narratives = [build_narrative_with_details(base)]
 
-        return random.choice(narratives)
+        # Get the narrative to return
+        narrative = random.choice(narratives)
+
+        # EXTEND to 600+ chars (6-8 lines) if needed
+        if len(narrative) < 600:
+            extensions = []
+
+            # Add more atmospheric details
+            if details['numbers'] and len(details['numbers']) > 1:
+                extra_nums = ', '.join(str(n) for n in details['numbers'][1:3])
+                extensions.append(f"Additional mystical frequencies {extra_nums} vibrate in harmony with the realm's energy.")
+
+            if details['actions']:
+                action_desc = ', '.join(details['actions'][:2])
+                extensions.append(f"The very space seems to {action_desc}, filling you with both wonder and trepidation.")
+
+            if details['key_phrases'] and len(details['key_phrases']) > 1:
+                phrase = details['key_phrases'][1][:60]
+                extensions.append(f"Ancient wisdom whispers: '{phrase}...' - a truth that resonates through dimensions.")
+
+            # Generic atmospheric padding
+            extensions.append("The very air seems alive with potential, each breath filling you with ancient knowledge.")
+            extensions.append("Reality shimmers at the edges of perception as the boundary between wisdom and physical form dissolves completely.")
+            extensions.append("You sense the weight of accumulated understanding pressing against your consciousness, challenging you to prove your worth.")
+
+            # Add extensions until we reach 600 chars
+            for ext in extensions:
+                if len(narrative) < 600:
+                    narrative += " " + ext
+                else:
+                    break
+
+        return narrative
 
     def _generate_dynamic_environment(self, note: ObsidianNote, folder_theme: str) -> str:
         """Generate environment description based on note characteristics"""

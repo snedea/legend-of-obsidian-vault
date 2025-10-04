@@ -4,7 +4,8 @@ Forest exploration screen for Legend of the Obsidian Vault
 import datetime
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import Static
+from textual.widgets import Static, Button
+from textual.containers import Container
 from textual import events
 
 
@@ -20,52 +21,75 @@ class ForestScreen(Screen):
         # Delayed import to avoid circular dependency
         import lov
 
-        # Colored Forest ASCII Art Header (8 lines)
-        yield Static("        ░░░  ✦ THE MYSTICAL FOREST OF KNOWLEDGE ✦  ░░░", classes="forest-title")
-        yield Static("    ▄▄██▄▄     ▄▄██▄▄     ▄▄██▄▄     ▄▄██▄▄     ▄▄██▄▄", classes="forest-trees")
-        yield Static("   ███████    ███████    ███████    ███████    ███████", classes="forest-trees")
-        yield Static("  ██▀▀▀▀▀██  ██▀▀▀▀▀██  ██▀▀▀▀▀██  ██▀▀▀▀▀██  ██▀▀▀▀▀██", classes="forest-trees")
-        yield Static("     ║║║        ║║║        ║║║        ║║║        ║║║", classes="forest-trunks")
-        yield Static("     ║║║        ║║║        ║║║        ║║║        ║║║", classes="forest-trunks")
-        yield Static("  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░", classes="forest-mist")
-        yield Static("═══════════════════════════════════════════════════════════════════════════", classes="forest-ground")
+        with Container(classes="main-border") as container:
+            container.border_title = "🌲  MYSTICAL FOREST  🌲"
+            container.border_subtitle = "🐉 Where Knowledge Awaits 🐉"
+            # Colored Forest ASCII Art Header (8 lines)
+            yield Static("        ░░░  ✦ THE MYSTICAL FOREST OF KNOWLEDGE ✦  ░░░", classes="forest-title")
+            yield Static("    ▄▄██▄▄     ▄▄██▄▄     ▄▄██▄▄     ▄▄██▄▄     ▄▄██▄▄", classes="forest-trees")
+            yield Static("   ███████    ███████    ███████    ███████    ███████", classes="forest-trees")
+            yield Static("  ██▀▀▀▀▀██  ██▀▀▀▀▀██  ██▀▀▀▀▀██  ██▀▀▀▀▀██  ██▀▀▀▀▀██", classes="forest-trees")
+            yield Static("     ║║║        ║║║        ║║║        ║║║        ║║║", classes="forest-trunks")
+            yield Static("     ║║║        ║║║        ║║║        ║║║        ║║║", classes="forest-trunks")
+            yield Static("  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░", classes="forest-mist")
+            yield Static("═══════════════════════════════════════════════════════════════════════════", classes="forest-ground")
 
-        # Two blank lines below header
-        yield Static("")
-        yield Static("")
+            # Two blank lines below header
+            yield Static("")
+            yield Static("")
 
-        # Scene description (exact LORD text)
-        yield Static("The murky forest stands before you - a giant maw of gloomy darkness ever beckoning.", classes="forest-content")
+            # Scene description (exact LORD text)
+            yield Static("The murky forest stands before you - a giant maw of gloomy darkness ever beckoning.", classes="forest-content")
 
-        # One blank line before actions menu
-        yield Static("")
+            # One blank line before actions menu
+            yield Static("")
 
-        # Player actions menu (exact LORD format)
-        yield Static("(L)ook for something to kill", classes="forest-content")
-        yield Static("(H)ealers hut", classes="forest-content")
-        yield Static("(R)eturn to town", classes="forest-content")
+            # Player actions menu (exact LORD format)
+            yield Button("(L)ook for something to kill", id="look")
+            yield Button("(H)ealers hut", id="healer")
+            yield Button("(R)eturn to town", id="return")
 
-        # One blank line before status line
-        yield Static("")
+            # One blank line before status line
+            yield Static("")
 
-        # Player status line (HitPoints and Fights in green, Gold in yellow, Gems in green)
-        hp_text = f"({lov.current_player.hitpoints} of {lov.current_player.max_hitpoints})"
-        status_line = f"HitPoints: {hp_text}  Fights: {lov.current_player.forest_fights}  Gold: {lov.current_player.gold}  Gems: {lov.current_player.gems}"
-        yield Static(status_line, classes="forest-status")
+            # Player status line (HitPoints and Fights in green, Gold in yellow, Gems in green)
+            hp_text = f"({lov.current_player.hitpoints} of {lov.current_player.max_hitpoints})"
+            status_line = f"HitPoints: {hp_text}  Fights: {lov.current_player.forest_fights}  Gold: {lov.current_player.gold}  Gems: {lov.current_player.gems}"
+            yield Static(status_line, classes="forest-status")
 
-        # One blank line before command area
-        yield Static("")
+            # One blank line before command area
+            yield Static("")
 
-        # Command prompt area (two lines)
-        now = datetime.datetime.now()
-        time_str = f"{now.hour:02d}:{now.minute:02d}"
+            # Command prompt area (two lines)
+            now = datetime.datetime.now()
+            time_str = f"{now.hour:02d}:{now.minute:02d}"
 
-        # Line 1: Location and commands on same line (magenta + green)
-        location_commands = f"The Forest (L,H,R,Q)  (? for menu)"
-        yield Static(location_commands, classes="forest-location-commands")
+            # Line 1: Location and commands on same line (magenta + green)
+            location_commands = f"The Forest (L,H,R,Q)  (? for menu)"
+            yield Static(location_commands, classes="forest-location-commands")
 
-        # Line 2: Command prompt with time and cursor (cyan with white cursor)
-        yield Static(f"Your command, {lov.current_player.name}? [{time_str}]: █", classes="forest-prompt")
+            # Line 2: Command prompt with time and cursor (cyan with white cursor)
+            yield Static(f"Your command, {lov.current_player.name}? [{time_str}]: █", classes="forest-prompt")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Handle button clicks"""
+        # Delayed import to avoid circular dependency
+        import lov
+
+        action = event.button.id
+
+        if lov.current_player.forest_fights <= 0:
+            self.app.pop_screen()
+            return
+
+        if action == "look":
+            self._show_enemy_search_notification()
+            self.set_timer(1.5, self._enter_combat)
+        elif action == "healer":
+            from screens.town.healer import HealerScreen
+            self.app.push_screen(HealerScreen())
+        elif action == "return":
+            self.app.pop_screen()
 
     def on_key(self, event: events.Key) -> None:
         # Delayed import to avoid circular dependency
@@ -84,8 +108,9 @@ class ForestScreen(Screen):
 
         if key == "L" or key == "E":
             # Look for something to kill (enter combat)
-            from .combat import CombatScreen
-            self.app.push_screen(CombatScreen())
+            self._show_enemy_search_notification()
+            # Delay combat screen transition to allow notification to be visible
+            self.set_timer(1.5, self._enter_combat)
         elif key == "H":
             # Healers hut - navigate to healer screen
             from screens.town.healer import HealerScreen
@@ -103,6 +128,55 @@ class ForestScreen(Screen):
         else:
             # Check for Jennie codes or other special commands
             self._handle_command_input(key)
+
+    def _show_enemy_search_notification(self):
+        """Show atmospheric notification when searching for enemies"""
+        # Delayed import to avoid circular dependency
+        from obsidian import vault
+        import lov
+        import random
+
+        # Get a preview of what enemy might be generated
+        notes = vault.scan_notes()
+        if notes:
+            # Select a random note (same logic as enemy generation)
+            note = random.choice(notes)
+
+            # Extract 1-2 key words from the note title for the teaser
+            title_words = note.title.replace('_', ' ').replace('-', ' ').split()
+
+            # Filter out common words and take meaningful ones
+            meaningful_words = [word for word in title_words if len(word) > 2 and
+                              word.lower() not in ['the', 'and', 'for', 'with', 'from', 'notes', 'note']]
+
+            if meaningful_words:
+                teaser_words = meaningful_words[:2]  # Take first 2 meaningful words
+                teaser = ' '.join(teaser_words)
+            else:
+                teaser = title_words[0] if title_words else "Mystery"
+
+            # Atmospheric messages with the teaser
+            mystical_messages = [
+                f"🍃 A rustle in the leaves gives way to... {teaser}",
+                f"🌫️ Mist swirls as something approaches... {teaser}",
+                f"✨ Ancient knowledge stirs in the shadows... {teaser}",
+                f"🦎 Something emerges from the depths... {teaser}",
+                f"🌟 The forest whispers of... {teaser}",
+                f"🔮 Mystical energies gather around... {teaser}",
+                f"⚡ The air crackles as you encounter... {teaser}"
+            ]
+
+            message = random.choice(mystical_messages)
+        else:
+            # Fallback if no notes available
+            message = "🍃 Something stirs in the mystical depths..."
+
+        self.notify(message)
+
+    def _enter_combat(self):
+        """Enter combat screen (called after delay)"""
+        from .combat import CombatScreen
+        self.app.push_screen(CombatScreen())
 
     def _handle_command_input(self, key: str):
         """Handle special command input like Jennie codes"""

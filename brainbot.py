@@ -8,7 +8,7 @@ import threading
 import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 # Try to import the AI libraries
 try:
@@ -33,6 +33,10 @@ class QuizQuestion:
     difficulty: int  # 1-5 scale
     question_type: str  # definition, concept, relationship, etc.
     context: str  # Additional context from the note
+
+    # Multiple choice fields
+    options: List[str] = field(default_factory=list)  # List of 3 options
+    correct_index: int = 0  # Index of correct answer (0, 1, or 2)
 
 @dataclass
 class EnemyDescription:
@@ -177,35 +181,60 @@ Be concise and focused."""
             if time.time() - cached_time < self.cache_ttl:
                 return cached_result
 
-        # Create context-aware prompt
+        # Create context-aware prompt for multiple choice
         prompt = f"""Based on this note about "{note_title}":
 
 {note_content[:500]}
 
-Generate a quiz question that tests understanding of the key concept.
+Generate a multiple choice quiz question that tests understanding of the key concept.
+
+Create 3 answer options:
+1. One correct answer
+2. One plausible but incorrect answer (similar to correct but wrong in key detail)
+3. One humorous/obviously wrong answer
 
 Format your response exactly as:
 QUESTION: [your question here]
-ANSWER: [short answer]
+CORRECT: [the correct answer]
+DECOY: [plausible but incorrect answer]
+FUNNY: [humorous wrong answer]
 TYPE: [definition/concept/relationship/fact]
 
-Make it challenging but fair."""
+Make the decoy answer similar enough to confuse someone who doesn't know the material well."""
 
-        response = self.generate_text(prompt, max_tokens=100)
+        response = self.generate_text(prompt, max_tokens=200)
 
         if response:
-            # Parse the AI response
-            question_match = re.search(r'QUESTION:\s*(.+?)(?=ANSWER:|$)', response, re.DOTALL)
-            answer_match = re.search(r'ANSWER:\s*(.+?)(?=TYPE:|$)', response, re.DOTALL)
+            # Parse the AI response for multiple choice
+            question_match = re.search(r'QUESTION:\s*(.+?)(?=CORRECT:|$)', response, re.DOTALL)
+            correct_match = re.search(r'CORRECT:\s*(.+?)(?=DECOY:|$)', response, re.DOTALL)
+            decoy_match = re.search(r'DECOY:\s*(.+?)(?=FUNNY:|$)', response, re.DOTALL)
+            funny_match = re.search(r'FUNNY:\s*(.+?)(?=TYPE:|$)', response, re.DOTALL)
             type_match = re.search(r'TYPE:\s*(.+?)$', response, re.DOTALL)
 
-            if question_match and answer_match:
+            if question_match and correct_match and decoy_match and funny_match:
+                correct_answer = correct_match.group(1).strip()
+                decoy_answer = decoy_match.group(1).strip()
+                funny_answer = funny_match.group(1).strip()
+
+                # Create options list and randomize order
+                options = [correct_answer, decoy_answer, funny_answer]
+                correct_index = 0  # Start with correct at index 0
+
+                # Shuffle options and track where correct answer ends up
+                import random
+                shuffled_options = options.copy()
+                random.shuffle(shuffled_options)
+                correct_index = shuffled_options.index(correct_answer)
+
                 quiz = QuizQuestion(
                     question=question_match.group(1).strip(),
-                    answer=answer_match.group(1).strip(),
+                    answer=correct_answer,
                     difficulty=difficulty,
                     question_type=type_match.group(1).strip() if type_match else "concept",
-                    context=note_content[:200]
+                    context=note_content[:200],
+                    options=shuffled_options,
+                    correct_index=correct_index
                 )
 
                 # Cache the result
@@ -708,51 +737,118 @@ class AIEnhancedQuizSystem:
         else:
             return "failed"
 
-    def generate_quiz_question(self, note_title: str, note_content: str, difficulty: int = 1) -> Tuple[str, str]:
+    def generate_quiz_question(self, note_title: str, note_content: str, difficulty: int = 1) -> QuizQuestion:
         """Generate quiz question with AI fallback"""
         if self.ai_available:
             try:
                 ai_quiz = self.local_ai.generate_quiz_question(note_title, note_content, difficulty)
                 if ai_quiz:
-                    return ai_quiz.question, ai_quiz.answer
+                    return ai_quiz
             except Exception as e:
                 print(f"AI quiz generation failed: {e}")
 
         # Fallback to regex-based generation
         return self._fallback_quiz_generation(note_title, note_content)
 
-    def _fallback_quiz_generation(self, note_title: str, note_content: str) -> Tuple[str, str]:
-        """Fallback quiz generation using regex patterns"""
+    def _fallback_quiz_generation(self, note_title: str, note_content: str) -> QuizQuestion:
+        """Fallback quiz generation using regex patterns with multiple choice"""
         content = note_content.lower()
+        import random
 
         # Try to find definition patterns
         definition_match = re.search(r'(.+?)\s+is\s+(.+?)[.\n]', content)
         if definition_match:
             concept = definition_match.group(1).strip()
             definition = definition_match.group(2).strip()
-            return f"What is {concept}?", definition[:50]
+
+            question = f"What is {concept}?"
+            correct = definition[:50]
+            decoy = f"A type of {concept.split()[-1] if concept.split() else 'concept'}"
+            funny = "A magical unicorn that grants wishes"
+
+            options = [correct, decoy, funny]
+            random.shuffle(options)
+            correct_index = options.index(correct)
+
+            return QuizQuestion(
+                question=question,
+                answer=correct,
+                difficulty=1,
+                question_type="definition",
+                context=note_content[:200],
+                options=options,
+                correct_index=correct_index
+            )
 
         # Try to find list items
         list_match = re.search(r'[-*]\s+(.+)', content)
         if list_match:
             item = list_match.group(1).strip()
-            return f"Name something related to {note_title}", item[:50]
+
+            question = f"Name something related to {note_title}"
+            correct = item[:50]
+            decoy = f"Something about {note_title.split()[0] if note_title.split() else 'notes'}"
+            funny = "Pizza delivery instructions"
+
+            options = [correct, decoy, funny]
+            random.shuffle(options)
+            correct_index = options.index(correct)
+
+            return QuizQuestion(
+                question=question,
+                answer=correct,
+                difficulty=1,
+                question_type="list",
+                context=note_content[:200],
+                options=options,
+                correct_index=correct_index
+            )
 
         # Extract first sentence
         first_sentence = re.search(r'^([^.!?]+[.!?])', content.strip())
         if first_sentence:
             sentence = first_sentence.group(1).strip()
             if len(sentence) < 100:
-                return f"Complete: {sentence[:50]}...", sentence[50:100]
+                question = f"Complete this from {note_title}: '{sentence[:30]}...'"
+                correct = sentence[30:80] if len(sentence) > 30 else sentence
+                decoy = f"...something about {note_title.split()[0] if note_title.split() else 'notes'}"
+                funny = "...and then the aliens arrived"
+
+                options = [correct, decoy, funny]
+                random.shuffle(options)
+                correct_index = options.index(correct)
+
+                return QuizQuestion(
+                    question=question,
+                    answer=correct,
+                    difficulty=1,
+                    question_type="completion",
+                    context=note_content[:200],
+                    options=options,
+                    correct_index=correct_index
+                )
 
         # Fallback questions
-        fallback_questions = [
-            (f"What category does {note_title} belong to?", "knowledge"),
-            (f"When did you last think about {note_title}?", "recently"),
-            (f"Why is {note_title} important?", "learning"),
+        fallback_data = [
+            (f"What category does '{note_title}' belong to?", "knowledge", "random stuff", "interdimensional portals"),
+            (f"When might you use '{note_title}'?", "when learning", "never", "during zombie apocalypse"),
+            (f"Why might '{note_title}' be important?", "for understanding", "it's not important", "to summon dragons"),
         ]
 
-        return random.choice(fallback_questions)
+        question_text, correct, decoy, funny = random.choice(fallback_data)
+        options = [correct, decoy, funny]
+        random.shuffle(options)
+        correct_index = options.index(correct)
+
+        return QuizQuestion(
+            question=question_text,
+            answer=correct,
+            difficulty=1,
+            question_type="general",
+            context=note_content[:200],
+            options=options,
+            correct_index=correct_index
+        )
 
     def generate_enemy_description(self, note_title: str, note_content: str, base_enemy: str) -> Optional[EnemyDescription]:
         """Generate enemy description with AI"""
@@ -807,7 +903,7 @@ def is_ai_available(wait_timeout: float = 1.0) -> bool:
     return ai_quiz_system.wait_for_initialization(timeout=wait_timeout)
 
 # Sync wrapper functions for use in the main game
-def sync_generate_quiz_question(note_title: str, note_content: str, difficulty: int = 1) -> Tuple[str, str]:
+def sync_generate_quiz_question(note_title: str, note_content: str, difficulty: int = 1) -> QuizQuestion:
     """Synchronous wrapper for quiz generation"""
     return ai_quiz_system.generate_quiz_question(note_title, note_content, difficulty)
 

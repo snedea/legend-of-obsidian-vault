@@ -3,7 +3,8 @@ Bar Room screen for Legend of the Obsidian Vault
 """
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import Static
+from textual.widgets import Static, Button
+from textual.containers import Container
 from textual import events
 
 
@@ -14,28 +15,45 @@ class BarRoomScreen(Screen):
         # Delayed import to avoid circular dependency
         import lov
 
-        # Check if player is level 1 (bartender won't talk to them)
-        if lov.current_player.level == 1:
-            yield Static("The Bar Room", classes="header")
-            yield Static("=-" * 30, classes="separator")
-            yield Static("")
-            yield Static("The bartender glances at you dismissively.")
-            yield Static("'Get out of here, kid. Come back when you've")
-            yield Static("proven yourself in the forest.'")
-            yield Static("")
-            yield Static("Press any key to return...")
-        else:
-            yield Static("The Bar Room", classes="header")
-            yield Static("=-" * 30, classes="separator")
-            yield Static("")
-            yield Static("The gruff bartender eyes you carefully.")
-            yield Static("'What'll it be, warrior?'")
-            yield Static("")
-            yield Static("(G)ems for stats (2 gems)")
-            yield Static("(R)oom for the night")
-            yield Static("(B)ribe me to kill sleeping players")
-            yield Static("(N)ame change")
-            yield Static("(Q) Return to inn")
+        with Container(classes="main-border") as container:
+            container.border_title = "🍺 THE BAR ROOM 🍺"
+            container.border_subtitle = "🍻 Drinks & Deals 🍻"
+
+            # Check if player is level 1 (bartender won't talk to them)
+            if lov.current_player.level == 1:
+                yield Static("The Bar Room", classes="header")
+                yield Static("=-" * 30, classes="separator")
+                yield Static("")
+                yield Static("The bartender glances at you dismissively.")
+                yield Static("'Get out of here, kid. Come back when you've")
+                yield Static("proven yourself in the forest.'")
+                yield Static("")
+                yield Static("Press any key to return...")
+            else:
+                yield Static("The Bar Room", classes="header")
+                yield Static("=-" * 30, classes="separator")
+                yield Static("")
+                yield Static("The gruff bartender eyes you carefully.")
+                yield Static("'What'll it be, warrior?'")
+                yield Static("")
+                yield Button("(G)ems for stats (2 gems)", id="gems")
+                yield Button("(R)oom for the night", id="room")
+                yield Button("(B)ribe me to kill sleeping players", id="bribe")
+                yield Button("(N)ame change", id="name_change")
+                yield Button("(Q) Return to inn", id="return_inn")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Handle button presses for touchscreen/mouse support"""
+        if event.button.id == "return_inn":
+            self.app.pop_screen()
+        elif event.button.id == "gems":
+            self._gem_trading()
+        elif event.button.id == "room":
+            self._rent_room()
+        elif event.button.id == "bribe":
+            self._bribe_bartender()
+        elif event.button.id == "name_change":
+            self._change_name()
 
     def on_key(self, event: events.Key) -> None:
         # Delayed import to avoid circular dependency

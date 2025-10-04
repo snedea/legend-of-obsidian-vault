@@ -724,7 +724,7 @@ MASTERS = {
         'name': 'Aragorn',
         'weapon': 'Twin Swords',
         'greeting': "You are now level three, and you are actually becoming well known in the realm. I heard your name being mentioned by Violet.... Ye Gods she's hot....",
-        'ready': "You have learned everything I can teach you.",
+        'ready': "You have learned all I can teach through words. Now let us fight!",
         'victory': "Torak's Eye!!! You are a great warrior!",
         'level_up_text': "You are now level four! Even Violet has heard of you."
     },

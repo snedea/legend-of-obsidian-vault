@@ -187,6 +187,190 @@ def validate_answer(self, user_answer: str, correct_answer: str, ai_question: bo
     return any(word in user_answer for word in correct_answer.split())
 ```
 
+## Combat Narrative System Architecture
+
+### Overview: The Three-Stage Narrative Pipeline
+
+Combat narratives in LOV flow through three distinct stages, each in a separate file:
+
+1. **Generation** (AI or Template-based) → `brainbot.py` or `obsidian.py`
+2. **Storage** → `Enemy.encounter_narrative` attribute
+3. **Display Rendering** → `screens/combat/combat.py`
+
+**CRITICAL**: Most narrative issues stem from stage 3 (display), not generation!
+
+### Stage 1: Narrative Generation
+
+#### AI Generation Path (Primary)
+**File**: `/Users/name/homelab/legend_of_obsidian/brainbot.py`
+**Function**: `generate_enemy_from_note()` (lines 240-329)
+**Key Parameters**:
+- Line 282: `max_tokens=400` - Controls AI output length (400 tokens ≈ 300-400 words)
+- Line 273: Prompt instructs "3-4 sentence narrative"
+- Line 286: Stores result in `encounter_narrative` field
+
+```python
+# brainbot.py:282
+response = self.generate_text(prompt, max_tokens=400, generation_type="enemy")
+```
+
+**When to modify**: Only if AI generates too-short content (rare)
+
+#### Template Generation Path (Fallback)
+**File**: `/Users/name/homelab/legend_of_obsidian/obsidian.py`
+**Function**: `_generate_dynamic_encounter_narrative()` (lines 891-1024)
+**Key Features**:
+- Line 893: Reads up to 300 chars of note content for keyword detection
+- Lines 929-990: Content-aware templates (code, meetings, recipes, etc.)
+- Lines 995-1024: Extension logic ensures 600+ character minimum
+
+```python
+# obsidian.py:995-1024 - Ensures rich narratives
+if len(narrative) < 600:
+    extensions = []
+    # Adds atmospheric details from note content
+    if details['numbers'] and len(details['numbers']) > 1:
+        extra_nums = ', '.join(str(n) for n in details['numbers'][1:3])
+        extensions.append(f"Additional mystical frequencies {extra_nums}...")
+```
+
+**When to modify**: If fallback narratives feel generic or too short
+
+### Stage 2: Storage
+**Location**: `game_data.py` - `Enemy` dataclass
+**Field**: `encounter_narrative: str = ""`
+
+This stage is just data storage - no processing happens here.
+
+### Stage 3: Display Rendering (MOST COMMON ISSUE)
+
+**File**: `/Users/name/homelab/legend_of_obsidian/screens/combat/combat.py`
+**Critical Lines**:
+- **Line 47**: `_wrap_narrative_text_smart(encounter_narrative, 75, max_lines=8)`
+  - `75` = character width per line
+  - `max_lines=8` = **DISPLAY LIMIT** (recently fixed from 4 → 8)
+
+**Function**: `_wrap_narrative_text_smart()` (lines 151-195)
+- Line 173-174: Stops processing at `max_lines - 1`
+- Line 181-187: Adds "..." ellipsis when content exceeds limit
+- Line 189-191: Pads with empty lines to ensure consistent height
+
+```python
+# combat.py:47 - THE MOST IMPORTANT LINE FOR NARRATIVE DISPLAY
+narrative_lines = self._wrap_narrative_text_smart(self.enemy.encounter_narrative, 75, max_lines=8)
+```
+
+### Critical Lesson Learned: October 2025 Multi-Hour Debugging Session
+
+#### The Problem
+User reported: "I see only 4 lines with '...' truncation, narratives aren't long enough!"
+
+#### The Wrong Path (2+ hours wasted)
+1. ❌ Edited `ai_engine.py` in `/Users/name/homelab/ai-red-dragon` (WRONG DIRECTORY)
+2. ❌ Increased `max_tokens` from 150 → 800 in wrong files
+3. ❌ Added extension logic to wrong `obsidian.py`
+4. ❌ Blamed cache, AI token limits, stop sequences
+5. ❌ Added debug logging that never appeared (wrong directory!)
+
+**Root Cause Discovery**:
+- User ran game from `/Users/name/homelab/legend_of_obsidian`
+- All edits were in `/Users/name/homelab/ai-red-dragon` (wrong project!)
+- Changes never took effect because they were in the wrong codebase
+
+#### The Actual Root Cause
+**File**: `/Users/name/homelab/legend_of_obsidian/screens/combat/combat.py`
+**Line 47**: Hardcoded `max_lines=4`
+
+```python
+# BEFORE (October 2025)
+narrative_lines = self._wrap_narrative_text_smart(self.enemy.encounter_narrative, 75, max_lines=4)
+# Result: Always shows exactly 4 lines, truncates rest with "..."
+
+# AFTER (Fixed October 2025)
+narrative_lines = self._wrap_narrative_text_smart(self.enemy.encounter_narrative, 75, max_lines=8)
+# Result: Shows up to 8 lines, displays full AI-generated content
+```
+
+**The Fix**: Changed ONE NUMBER from 4 → 8 in combat.py line 47
+
+**Time to Fix**: 5 seconds (after finding the right line)
+**Time Wasted**: 2+ hours (editing wrong directory, wrong functions)
+
+### Quick Reference Guide for Future Claude Instances
+
+#### ✅ FIRST: Verify Working Directory
+```bash
+# User's actual game location
+/Users/name/homelab/legend_of_obsidian/
+
+# NOT this directory (old test copy)
+/Users/name/homelab/ai-red-dragon/  # ❌ WRONG!
+```
+
+**Before making ANY changes, verify**:
+1. Ask user: "What directory are you running the game from?"
+2. Check git status in `/Users/name/homelab/legend_of_obsidian`
+3. Test changes affect the actual running game
+
+#### Common Narrative Modifications
+
+**Change Display Line Count (6-8 lines)**
+- **File**: `screens/combat/combat.py`
+- **Line**: 47
+- **Change**: `max_lines=8` (or any number 1-12)
+- **Impact**: Immediate - controls how many lines render on screen
+
+**Increase AI Generation Length**
+- **File**: `brainbot.py`
+- **Line**: 282
+- **Change**: `max_tokens=400` (current), can increase to 600-800
+- **Impact**: Slower generation, more detailed narratives
+
+**Add/Modify Template Narratives**
+- **File**: `obsidian.py`
+- **Lines**: 929-990 (content-specific templates)
+- **Lines**: 995-1024 (extension logic)
+- **Impact**: Better fallback when AI unavailable
+
+**Adjust Text Wrapping Width**
+- **File**: `screens/combat/combat.py`
+- **Line**: 47
+- **Change**: First parameter (currently `75`)
+- **Impact**: Wider/narrower text columns
+
+#### Debugging Narrative Issues
+
+**Step 1: Identify Which Stage Fails**
+```python
+# Add temporary debug in combat.py compose() method
+print(f"📏 Narrative length: {len(self.enemy.encounter_narrative)} chars")
+print(f"📏 First 100 chars: {self.enemy.encounter_narrative[:100]}")
+```
+
+**Step 2: Check Generation (if empty/generic)**
+```python
+# Check in obsidian.py or brainbot.py
+print(f"🎭 Generated narrative: {encounter_narrative[:200]}")
+```
+
+**Step 3: Check Display (if truncated)**
+```python
+# Check max_lines parameter in combat.py:47
+narrative_lines = self._wrap_narrative_text_smart(..., max_lines=???)
+```
+
+**90% of issues are Stage 3 (display)** - check combat.py:47 first!
+
+#### Working Directory Verification Protocol
+
+When user reports "changes aren't working":
+1. Check: `pwd` or "What directory are you in?"
+2. Verify: Files exist in user's reported directory
+3. Test: `ls screens/combat/combat.py` in correct location
+4. Confirm: Git status shows modifications in correct repo
+
+**Never assume directory location** - always verify!
+
 ## Performance Optimizations
 
 ### Memory Management

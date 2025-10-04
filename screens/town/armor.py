@@ -4,6 +4,7 @@ Armor screen for Legend of the Obsidian Vault - Abdul's Armor
 from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Static, Button
+from textual.containers import Container
 from textual import events
 
 
@@ -15,45 +16,49 @@ class ArmorScreen(Screen):
         import lov
         from game_data import ARMOR
 
-        # Abdul's Armor Shop ASCII Art Header
-        yield Static("         ⚔️⚜️ ABDUL'S LEGENDARY ARMORY ⚜️⚔️", classes="armor-banner")
-        yield Static("", classes="separator")
-        yield Static("              ╔═══════════════════════╗", classes="armor-shield")
-        yield Static("             ╔╝                       ╚╗", classes="armor-shield")
-        yield Static("            ╔╝   ⚜️  MASTER ARMOR  ⚜️   ╚╗", classes="armor-decoration")
-        yield Static("           ╔╝        ╔═══════╗         ╚╗", classes="armor-shield")
-        yield Static("          ╔╝         ║███████║          ╚╗", classes="armor-shield")
-        yield Static("         ╔╝          ║███████║           ╚╗", classes="armor-shield")
-        yield Static("        ╔╝           ╚═══════╝            ╚╗", classes="armor-shield")
-        yield Static("       ╔╝     ⚔️═══════════════════⚔️      ╚╗", classes="armor-swords")
-        yield Static("      ╔╝═══════════════════════════════════╚╗", classes="armor-border")
-        yield Static("══════════════════════════════════════════════════", classes="armor-border")
-        yield Static("")
-        yield Static(f"Gold: {lov.current_player.gold:,}", classes="gold")
-        current_armor = ARMOR[lov.current_player.armor_num]
-        yield Static(f"Current armor: {current_armor[0]} (Defense: {current_armor[2]})")
-        yield Static("")
+        with Container(classes="main-border") as container:
+            container.border_title = "⚔️ ABDUL'S ARMORY ⚔️"
+            container.border_subtitle = "🛡️ Defense & Protection 🛡️"
 
-        # Show available armor (can only buy next tier)
-        for i, (name, price, defense) in enumerate(ARMOR):
-            if i <= lov.current_player.armor_num + 1:  # Can only buy next armor
-                if i == lov.current_player.armor_num:
-                    yield Static(f"  {name} - OWNED (Defense: {defense})", classes="gold")
-                else:
-                    can_afford = lov.current_player.gold >= price
-                    current_def = ARMOR[lov.current_player.armor_num][2]
-                    def_improvement = defense - current_def
+            # Abdul's Armor Shop ASCII Art Header
+            yield Static("         ⚔️⚜️ ABDUL'S LEGENDARY ARMORY ⚜️⚔️", classes="armor-banner")
+            yield Static("", classes="separator")
+            yield Static("              ╔═══════════════════════╗", classes="armor-shield")
+            yield Static("             ╔╝                       ╚╗", classes="armor-shield")
+            yield Static("            ╔╝   ⚜️  MASTER ARMOR  ⚜️   ╚╗", classes="armor-decoration")
+            yield Static("           ╔╝        ╔═══════╗         ╚╗", classes="armor-shield")
+            yield Static("          ╔╝         ║███████║          ╚╗", classes="armor-shield")
+            yield Static("         ╔╝          ║███████║           ╚╗", classes="armor-shield")
+            yield Static("        ╔╝           ╚═══════╝            ╚╗", classes="armor-shield")
+            yield Static("       ╔╝     ⚔️═══════════════════⚔️      ╚╗", classes="armor-swords")
+            yield Static("      ╔╝═══════════════════════════════════╚╗", classes="armor-border")
+            yield Static("══════════════════════════════════════════════════", classes="armor-border")
+            yield Static("")
+            yield Static(f"Gold: {lov.current_player.gold:,}", classes="gold")
+            current_armor = ARMOR[lov.current_player.armor_num]
+            yield Static(f"Current armor: {current_armor[0]} (Defense: {current_armor[2]})")
+            yield Static("")
 
-                    button_text = f"{i+1}. {name} - {price:,} gold"
-                    button_text += f" (Defense: {defense}, +{def_improvement})"
+            # Show available armor (can only buy next tier)
+            for i, (name, price, defense) in enumerate(ARMOR):
+                if i <= lov.current_player.armor_num + 1:  # Can only buy next armor
+                    if i == lov.current_player.armor_num:
+                        yield Static(f"  {name} - OWNED (Defense: {defense})", classes="gold")
+                    else:
+                        can_afford = lov.current_player.gold >= price
+                        current_def = ARMOR[lov.current_player.armor_num][2]
+                        def_improvement = defense - current_def
 
-                    yield Button(button_text, id=f"armor_{i}", disabled=not can_afford)
+                        button_text = f"{i+1}. {name} - {price:,} gold"
+                        button_text += f" (Defense: {defense}, +{def_improvement})"
 
-        yield Static("")
-        yield Static("Abdul examines your current protection.")
-        yield Static("'A warrior needs the finest armor to survive!'")
-        yield Static("")
-        yield Static("(Q) Return to town")
+                        yield Button(button_text, id=f"armor_{i}", disabled=not can_afford)
+
+            yield Static("")
+            yield Static("Abdul examines your current protection.")
+            yield Static("'A warrior needs the finest armor to survive!'")
+            yield Static("")
+            yield Button("(Q) Return to town", id="return_town")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle armor purchase"""
@@ -61,7 +66,9 @@ class ArmorScreen(Screen):
         import lov
         from game_data import ARMOR
 
-        if event.button.id and event.button.id.startswith("armor_"):
+        if event.button.id == "return_town":
+            self.app.pop_screen()
+        elif event.button.id and event.button.id.startswith("armor_"):
             armor_idx = int(event.button.id.split("_")[1])
             armor_name, price, defense = ARMOR[armor_idx]
 

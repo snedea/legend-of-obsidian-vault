@@ -6,7 +6,7 @@ from typing import List
 from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Static
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, Container
 from textual import events
 
 # Import will be updated after refactor
@@ -38,75 +38,70 @@ class CombatScreen(Screen):
         if not self.is_master_fight and self.enemy is None:
             self.enemy = vault.get_enemy_for_level(lov.current_player.level)
 
-        # Line 1-3: Header (3 lines) - Fixed alignment
-        yield Static("╔═══════════════════════════════════════════════════════════════════════════╗", classes="bbs-header")
-        yield Static("║                          ⚔️  MYSTICAL ENCOUNTER  ⚔️                       ║", classes="bbs-header")
-        yield Static("╚═══════════════════════════════════════════════════════════════════════════╝", classes="bbs-header")
+        with Container(classes="main-border") as container:
+            container.border_title = "⚔️  MYSTICAL ENCOUNTER  ⚔️"
+            container.border_subtitle = "🔥 Battle for Knowledge 🔥"
 
-        # Narrative Section (4 lines)
-        if hasattr(self.enemy, 'encounter_narrative') and self.enemy.encounter_narrative:
-            narrative_lines = self._wrap_narrative_text_smart(self.enemy.encounter_narrative, 75, max_lines=4)
-            for line in narrative_lines:
-                yield Static(f" {line}", classes="narrative")
-        else:
-            yield Static(f" You discover the essence of '{self.enemy.note_title}' made manifest!", classes="narrative")
-            yield Static(" Reality bends as knowledge takes physical form in this mystical realm.", classes="narrative")
-            yield Static(" The air crackles with power as battle becomes inevitable...", classes="narrative")
-            yield Static("", classes="narrative")
+            # Narrative Section (6-8 lines)
+            if hasattr(self.enemy, 'encounter_narrative') and self.enemy.encounter_narrative:
+                narrative_lines = self._wrap_narrative_text_smart(self.enemy.encounter_narrative, 75, max_lines=8)
+                for line in narrative_lines:
+                    yield Static(f" {line}", classes="narrative")
+            else:
+                yield Static(f" You discover the essence of '{self.enemy.note_title}' made manifest!", classes="narrative")
+                yield Static(" Reality bends as knowledge takes physical form in this mystical realm.", classes="narrative")
+                yield Static(" The air crackles with power as battle becomes inevitable...", classes="narrative")
+                yield Static("", classes="narrative")
 
-        # Separator line
-        yield Static("═" * 79, classes="separator")
+            # Separator line
+            yield Static("═" * 79, classes="separator")
 
-        # Enemy Status Section
-        yield Static("", classes="separator")
-        yield Static("【 ENEMY STATUS 】", classes="enemy-stats")
-        yield Static(f"Name: {self.enemy.name[:50]}", classes="enemy-stats")
+            # Enemy Status Section
+            yield Static("", classes="separator")
+            yield Static("【 ENEMY STATUS 】", classes="enemy-stats")
+            yield Static(f"Name: {self.enemy.name[:50]}", classes="enemy-stats")
 
-        enemy_max_hp = getattr(self.enemy, 'max_hitpoints', self.enemy.hitpoints)
-        enemy_hp_bar = self._create_hp_bar(self.enemy.hitpoints, enemy_max_hp, 10)
-        yield Static(f"HP:   {enemy_hp_bar}", classes="enemy-hp-bar", id="enemy_hp_display")
+            enemy_max_hp = getattr(self.enemy, 'max_hitpoints', self.enemy.hitpoints)
+            enemy_hp_bar = self._create_hp_bar(self.enemy.hitpoints, enemy_max_hp, 10)
+            yield Static(f"HP:   {enemy_hp_bar}", classes="enemy-hp-bar", id="enemy_hp_display")
 
-        enemy_attack = getattr(self.enemy, 'attack', 0)
-        enemy_defense = getattr(self.enemy, 'defense', 0)
-        yield Static(f"Level: {self.enemy.level}   ATK: {enemy_attack}   DEF: {enemy_defense}", classes="enemy-stats")
+            enemy_attack = getattr(self.enemy, 'attack', 0)
+            enemy_defense = getattr(self.enemy, 'defense', 0)
+            yield Static(f"Level: {self.enemy.level}   ATK: {enemy_attack}   DEF: {enemy_defense}", classes="enemy-stats")
 
-        enemy_weapon = getattr(self.enemy, 'weapon', 'Unknown')
-        enemy_armor = getattr(self.enemy, 'armor', 'Unknown')
-        yield Static(f"Weapon: {enemy_weapon[:30]}   Armor: {enemy_armor[:30]}", classes="enemy-stats")
+            enemy_weapon = getattr(self.enemy, 'weapon', 'Unknown')
+            enemy_armor = getattr(self.enemy, 'armor', 'Unknown')
+            yield Static(f"Weapon: {enemy_weapon[:30]}   Armor: {enemy_armor[:30]}", classes="enemy-stats")
 
-        # Separator between enemy and player
-        yield Static("─" * 79, classes="separator")
+            # Separator between enemy and player
+            yield Static("─" * 79, classes="separator")
 
-        # Player Status Section
-        yield Static("【 PLAYER STATUS 】", classes="player-stats")
-        yield Static(f"Name: {lov.current_player.name}", classes="player-stats")
+            # Player Status Section
+            yield Static("【 PLAYER STATUS 】", classes="player-stats")
+            yield Static(f"Name: {lov.current_player.name}", classes="player-stats")
 
-        player_hp_bar = self._create_hp_bar(lov.current_player.hitpoints, lov.current_player.max_hitpoints, 10)
-        yield Static(f"HP:   {player_hp_bar}", classes="player-hp-bar", id="player_hp_display")
+            player_hp_bar = self._create_hp_bar(lov.current_player.hitpoints, lov.current_player.max_hitpoints, 10)
+            yield Static(f"HP:   {player_hp_bar}", classes="player-hp-bar", id="player_hp_display")
 
-        yield Static(f"Level: {lov.current_player.level}   ATK: {lov.current_player.attack_power}   DEF: {lov.current_player.defense_power}   Gold: {lov.current_player.gold}", classes="player-stats")
+            yield Static(f"Level: {lov.current_player.level}   ATK: {lov.current_player.attack_power}   DEF: {lov.current_player.defense_power}   Gold: {lov.current_player.gold}", classes="player-stats")
 
-        from game_data import WEAPONS, ARMOR
-        player_weapon = WEAPONS[lov.current_player.weapon_num][0]
-        player_armor = ARMOR[lov.current_player.armor_num][0]
-        yield Static(f"Weapon: {player_weapon[:30]}   Armor: {player_armor[:30]}", classes="player-stats")
+            from game_data import WEAPONS, ARMOR
+            player_weapon = WEAPONS[lov.current_player.weapon_num][0]
+            player_armor = ARMOR[lov.current_player.armor_num][0]
+            yield Static(f"Weapon: {player_weapon[:30]}   Armor: {player_armor[:30]}", classes="player-stats")
 
-        yield Static("═" * 79, classes="separator")
-
-        # Commands Section
-        yield Static("", classes="separator")
-        yield Static("⚔️  BATTLE COMMANDS  ⚔️", classes="combat-commands")
-        # Build command text based on player abilities
-        commands = "(A)ttack  (K)nowledge Quiz  (S)skill"
-        if lov.current_player.fairy_lore:
-            commands += "  (H)eal"
-        commands += "  (R)un Away"
-        yield Static(commands, classes="combat-commands")
-
-        # Combat Log and Input
-        yield Static("", classes="separator")
-        yield Static("Ready for combat...", id="combat_feedback", classes="combat-log")
-        yield Static("> Your command? _", classes="prompt")
+            yield Static("═" * 79, classes="separator")
+            # Commands Section
+            yield Static("⚔️  BATTLE COMMANDS  ⚔️", classes="combat-commands")
+            # Build command text based on player abilities
+            commands = "(A)ttack  (K)nowledge Quiz  (S)skill"
+            if lov.current_player.fairy_lore:
+                commands += "  (H)eal"
+            commands += "  (R)un Away"
+            yield Static(commands, classes="combat-commands")
+            # Combat Log and Input
+            yield Static("Ready for combat...", classes="combat-status")
+            yield Static("> Your command? _", classes="prompt", id="combat_feedback")
 
     def _create_hp_bar(self, current_hp: int, max_hp: int, width: int = 10, bar_type: str = "player") -> str:
         """Create a visual HP bar using Unicode blocks like █░░░░░░░░░ 10%"""

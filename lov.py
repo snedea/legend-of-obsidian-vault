@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.text import Text
 from rich.panel import Panel
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical, Grid
+from textual.containers import Container, Horizontal, Vertical, Grid, VerticalScroll
 from textual.widgets import Header, Footer, Static, Button, Input, Label
 from textual.screen import Screen
 from textual import events
@@ -68,29 +68,43 @@ class LordApp(App):
     }
 
     .menu-btn {
-        background: black;
-        border: none;
+        background: ansi_blue;
+        border: solid ansi_bright_white;
         color: ansi_bright_white;
-        text-align: left;
-        padding: 0;
-        margin: 0;
-        height: 1;
-        min-height: 1;
+        text-align: center;
+        padding: 1;
+        margin: 1;
+        height: 3;
+        min-height: 3;
+        width: 50;
     }
 
     .menu-btn:hover {
-        background: ansi_blue;
-        color: ansi_bright_white;
+        background: ansi_bright_blue;
+        color: ansi_bright_yellow;
+        border: solid ansi_bright_yellow;
     }
 
     .menu-btn:focus {
-        background: ansi_blue;
-        color: ansi_bright_white;
+        background: ansi_bright_blue;
+        color: ansi_bright_yellow;
+        border: solid ansi_bright_yellow;
     }
 
     .menu-key {
         color: ansi_bright_yellow;
         text-style: bold;
+    }
+
+    .main-border {
+        border: thick ansi_bright_red;
+        background: black;
+        padding: 2;
+        height: 1fr;
+        border-title-color: ansi_bright_yellow;
+        border-title-style: bold;
+        border-subtitle-color: ansi_bright_cyan;
+        border-subtitle-style: italic;
     }
 
     .prompt {
@@ -135,8 +149,23 @@ class LordApp(App):
         border: none;
     }
 
+
     Input:focus {
         border: solid ansi_bright_yellow;
+    }
+
+    .town-scroll {
+        max-height: 20;
+        scrollbar-background: ansi_red;
+        scrollbar-color: ansi_bright_red;
+        scrollbar-size: 1 1;
+    }
+
+    .char-scroll {
+        max-height: 15;
+        scrollbar-background: ansi_red;
+        scrollbar-color: ansi_bright_red;
+        scrollbar-size: 1 1;
     }
     .forest-header {
         background: black;
@@ -680,43 +709,51 @@ class StartScreen(Screen):
     can_focus = True
 
     def compose(self) -> ComposeResult:
-        yield Static("The Legend of the Obsidian Vault", classes="header")
-        yield Static("=-" * 30, classes="separator")
-        yield Static("")
-        yield Static("** Welcome to the realm, new warrior! **", classes="content")
-        yield Static("")
-        yield Static("Select an option (click buttons or press keys):")
-        yield Static("")
+        with Container(classes="main-border") as container:
+            container.border_title = "⚔️  LEGEND OF OBSIDIAN VAULT  ⚔️"
+            container.border_subtitle = "✨ Enter the Realm of Adventure ✨"
 
-        # Add clickable buttons as backup
-        yield Button("(N) Create New Character", id="new_char", classes="menu-btn")
-        yield Button("(E) Load Existing Character", id="existing_char", classes="menu-btn")
-        yield Button("(V) Configure Vault Settings", id="vault_settings", classes="menu-btn")
-        yield Button("(B) BrainBot AI Settings", id="ai_settings", classes="menu-btn")
-        yield Button("(Q) Quit Game", id="quit_game", classes="menu-btn")
+            yield Static("The Legend of the Obsidian Vault", classes="header")
+            yield Static("=-" * 30, classes="separator")
+            yield Static("")
+            yield Static("** Welcome to the realm, new warrior! **", classes="content")
+            yield Static("")
+            yield Static("Select an option (click buttons or press keys):")
+            yield Static("")
 
-        yield Static("")
-        yield Static("Press keys: N, E, V, B, Q or click buttons above", classes="prompt")
+            # Add clickable buttons as backup in 2-column layout
+            with Horizontal():
+                with Vertical():
+                    yield Button("(N) Create New Character", id="new_char")
+                    yield Button("(E) Load Existing Character", id="existing_char")
+                    yield Button("(V) Configure Vault Settings", id="vault_settings")
+                with Vertical():
+                    yield Button("(B) BrainBot AI Settings", id="ai_settings")
+                    yield Button("(Q) Quit Game", id="quit_game")
+
+            yield Static("")
+            yield Static("Press keys: N, E, V, B, Q or click buttons above", classes="prompt")
+
+            # Padding to fill screen height
+            for _ in range(15):
+                yield Static("")
 
     def on_mount(self) -> None:
         """Ensure this screen gets focus for keyboard input"""
         self.focus()
-        # Add a message to help debug
-        self.call_after_refresh(lambda: self.notify("Screen ready! Press N for new character"))
+        # Force layout refresh to fix initial height calculation
+        self.refresh(layout=True)
+        self.call_after_refresh(lambda: self.refresh(layout=True))
 
-    async def on_key(self, event: events.Key) -> None:
+    def on_key(self, event: events.Key) -> None:
         """Handle key presses"""
         key = event.key.upper()
-
-        # Debug: show what key was pressed
-        self.notify(f"Key pressed: {event.key} (upper: {key})")
 
         try:
             if key == "N" or event.key == "enter":
                 self.notify("Creating new character...")
                 self.app.push_screen(CharacterCreationScreen())
             elif key == "E":
-                self.notify("Loading existing characters...")
                 self.app.push_screen(PlayerSelectScreen())
             elif key == "V":
                 self.notify("Opening vault settings...")
@@ -744,7 +781,6 @@ class StartScreen(Screen):
                 self.notify("Creating new character...")
                 self.app.push_screen(CharacterCreationScreen())
             elif button_id == "existing_char":
-                self.notify("Loading existing characters...")
                 self.app.push_screen(PlayerSelectScreen())
             elif button_id == "vault_settings":
                 self.notify("Opening vault settings...")
@@ -772,7 +808,7 @@ class VaultSettingsScreen(Screen):
         yield Static("Enter path to your Obsidian vault (or press Enter to auto-detect):")
         yield Input(placeholder="e.g., /Users/name/Documents/Obsidian Vault")
         yield Static("")
-        yield Static("(Enter) to save, (Q) to go back")
+        yield Static("(Enter) to save, (Q) or (Escape) to go back")
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle vault path input"""
@@ -796,7 +832,7 @@ class VaultSettingsScreen(Screen):
         self.app.pop_screen()
 
     def on_key(self, event: events.Key) -> None:
-        if event.key.upper() == "Q":
+        if event.key.upper() == "Q" or event.key == "escape":
             self.app.pop_screen()
 
 class AISettingsScreen(Screen):
@@ -870,59 +906,67 @@ class TurgonsTrainingScreen(Screen):
     """Turgon's Warrior Training - Master progression system"""
 
     def compose(self) -> ComposeResult:
-        yield Static("🏛️  Turgon's Warrior Training", classes="header")
-        yield Static("=-" * 50, classes="separator")
-        yield Static("")
+        from textual.containers import Container
 
-        # Player status
-        yield Static(f"Warrior: {current_player.name}")
-        yield Static(f"Level: {current_player.level}")
-        yield Static(f"Experience: {current_player.experience:,}")
-        yield Static("")
+        with Container(classes="main-border") as container:
+            container.border_title = "🏛️ TURGON'S TRAINING 🏛️"
+            container.border_subtitle = "⚔️ Master Progression ⚔️"
 
-        # Check if player can level up
-        from game_data import can_level_up, get_next_level_exp, MASTERS
+            yield Static("🏛️  Turgon's Warrior Training", classes="header")
+            yield Static("=-" * 50, classes="separator")
+            yield Static("")
 
-        if can_level_up(current_player):
-            next_level = current_player.level + 1
-            if next_level <= 12 and next_level in MASTERS:
-                master = MASTERS[next_level]
-                yield Static(f"🎯 Ready to challenge {master['name']} for Level {next_level}!")
-                yield Static("")
-                yield Static(f"Master {master['name']} awaits your challenge...")
-                yield Static(f"Weapon to earn: {master['weapon']}")
-                yield Static("")
-                yield Button(f"(C)hallenge {master['name']}", id="challenge_master")
+            # Player status
+            yield Static(f"Warrior: {current_player.name}")
+            yield Static(f"Level: {current_player.level}")
+            yield Static(f"Experience: {current_player.experience:,}")
+            yield Static("")
+
+            # Check if player can level up
+            from game_data import can_level_up, get_next_level_exp, MASTERS
+
+            if can_level_up(current_player):
+                next_level = current_player.level + 1
+                if next_level <= 12 and next_level in MASTERS:
+                    master = MASTERS[next_level]
+                    yield Static(f"🎯 Ready to challenge {master['name']} for Level {next_level}!")
+                    yield Static("")
+                    yield Static(f"Master {master['name']} awaits your challenge...")
+                    yield Static(f"Weapon to earn: {master['weapon']}")
+                    yield Static("")
+                    yield Button(f"(C)hallenge {master['name']}", id="challenge_master")
+                else:
+                    yield Static("🏆 You have mastered all training levels!")
+                    yield Static("Seek the Red Dragon to prove your ultimate worth!")
             else:
-                yield Static("🏆 You have mastered all training levels!")
-                yield Static("Seek the Red Dragon to prove your ultimate worth!")
-        else:
-            # Show experience needed
-            next_level = current_player.level + 1
-            if next_level <= 12:
-                exp_needed = get_next_level_exp(current_player.level) - current_player.experience
-                yield Static(f"Experience needed for Level {next_level}: {exp_needed:,}")
-            else:
-                yield Static("🏆 Maximum level achieved!")
+                # Show experience needed
+                next_level = current_player.level + 1
+                if next_level <= 12:
+                    exp_needed = get_next_level_exp(current_player.level) - current_player.experience
+                    yield Static(f"Experience needed for Level {next_level}: {exp_needed:,}")
+                else:
+                    yield Static("🏆 Maximum level achieved!")
 
-        yield Static("")
-        yield Static("🗡️  Master Hall of Fame:")
-        yield Static("=-" * 30)
+            yield Static("")
+            yield Static("🗡️  Master Hall of Fame:")
+            yield Static("=-" * 30)
 
-        # Show defeated masters
-        for level in range(1, min(current_player.level + 1, 13)):
-            if level in MASTERS:
-                master = MASTERS[level]
-                status = "✅ DEFEATED" if level <= current_player.level else "❌ Awaiting"
-                yield Static(f"Level {level:2d}: {master['name']:<15} - {master['weapon']:<20} {status}")
+            # Show defeated masters
+            for level in range(1, min(current_player.level + 1, 13)):
+                if level in MASTERS:
+                    master = MASTERS[level]
+                    status = "✅ DEFEATED" if level <= current_player.level else "❌ Awaiting"
+                    yield Static(f"Level {level:2d}: {master['name']:<15} - {master['weapon']:<20} {status}")
 
-        yield Static("")
-        yield Static("(Q) Return to town")
+            yield Static("")
+            yield Button("(Q) Return to town", id="return_town")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle master challenge"""
         if event.button.id == "challenge_master":
             self._challenge_master()
+        elif event.button.id == "return_town":
+            self.app.pop_screen()
 
     def _challenge_master(self):
         """Challenge the next master for level up"""
@@ -956,42 +1000,37 @@ class MasterChallengeScreen(Screen):
         super().__init__()
         self.level = level
         self.master = master
-        self.challenge_accepted = False
 
     def compose(self) -> ComposeResult:
-        yield Static(f"⚔️  Master {self.master['name']} - Level {self.level}", classes="header")
-        yield Static("=-" * 50, classes="separator")
-        yield Static("")
+        from textual.containers import Container
 
-        # Master greeting
-        yield Static(f'Master {self.master["name"]} says:')
-        yield Static(f'"{self.master["greeting"]}"')
-        yield Static("")
+        with Container(classes="main-border") as container:
+            container.border_title = "⚔️ MASTER CHALLENGE ⚔️"
+            container.border_subtitle = f"🏆 {self.master['name']} - Level {self.level} 🏆"
 
-        if not self.challenge_accepted:
+            yield Static(f"⚔️  Master {self.master['name']} - Level {self.level}", classes="header")
+            yield Static("=-" * 50, classes="separator")
+            yield Static("")
+
+            # Master greeting
+            yield Static(f'Master {self.master["name"]} says:')
+            yield Static(f'"{self.master["greeting"]}"')
+            yield Static("")
+
             yield Static("Do you wish to challenge this master?")
             yield Static("")
             yield Button("(Y)es, I'm ready to fight!", id="accept_challenge")
             yield Button("(N)o, I need more training", id="decline_challenge")
-        else:
-            # Show ready message
-            yield Static(f'"{self.master["ready"]}"')
             yield Static("")
-            yield Static("⚔️  COMBAT BEGINS! ⚔️")
-            yield Static("")
-            yield Button("Begin the challenge!", id="start_combat")
-
-        yield Static("")
-        yield Static("(Q) Return to training hall")
+            yield Button("(Q) Return to training hall", id="return_training")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "accept_challenge":
-            self.challenge_accepted = True
-            self.refresh(recompose=True)
+            self._start_master_combat()
         elif event.button.id == "decline_challenge":
             self.app.pop_screen()
-        elif event.button.id == "start_combat":
-            self._start_master_combat()
+        elif event.button.id == "return_training":
+            self.app.pop_screen()
 
     def _start_master_combat(self):
         """Start combat with the master"""
@@ -1013,85 +1052,96 @@ class MasterChallengeScreen(Screen):
         key = event.key.upper()
         if key == "Q":
             self.app.pop_screen()
-        elif key == "Y" and not self.challenge_accepted:
-            self.challenge_accepted = True
-            self.refresh(recompose=True)
-        elif key == "N" and not self.challenge_accepted:
+        elif key == "Y":
+            self._start_master_combat()
+        elif key == "N":
             self.app.pop_screen()
 
 class NotesViewerScreen(Screen):
     """Display Obsidian notes and their status in the game"""
 
     def compose(self) -> ComposeResult:
-        yield Static("📚 Notes in the Obsidian Vault", classes="header")
-        yield Static("=-" * 50, classes="separator")
-        yield Static("")
+        from textual.containers import Container
+        from textual.widgets import Button
 
-        # Get vault status
-        vault_path = vault.get_vault_path()
-        if vault_path == "No vault found":
-            yield Static("❌ No Obsidian vault configured")
+        with Container(classes="main-border") as container:
+            container.border_title = "📚 OBSIDIAN VAULT 📚"
+            container.border_subtitle = "🗡️ Knowledge Enemies 🗡️"
+
+            yield Static("📚 Notes in the Obsidian Vault", classes="header")
+            yield Static("=-" * 50, classes="separator")
             yield Static("")
-            yield Static("Configure your vault in (V)ault Settings")
-        else:
-            yield Static(f"📁 Vault: {vault_path}")
 
-            # Try to scan notes
-            try:
-                notes = vault.scan_notes(force_rescan=True)
-
-                # Check AI status
-                ai_status = "❌ Disconnected"
-                try:
-                    from brainbot import is_ai_available
-                    ai_status = "🧠 Connected" if is_ai_available() else "❌ Disconnected"
-                except ImportError:
-                    ai_status = "📦 Not installed"
-
-                yield Static(f"🤖 AI Status: {ai_status}")
+            # Get vault status
+            vault_path = vault.get_vault_path()
+            if vault_path == "No vault found":
+                yield Static("❌ No Obsidian vault configured")
                 yield Static("")
+                yield Static("Configure your vault in (V)ault Settings")
+            else:
+                yield Static(f"📁 Vault: {vault_path}")
 
-                if notes:
-                    yield Static(f"Found {len(notes)} notes haunting the forest:")
+                # Try to scan notes
+                try:
+                    notes = vault.scan_notes(force_rescan=True)
+
+                    # Check AI status
+                    ai_status = "❌ Disconnected"
+                    try:
+                        from brainbot import is_ai_available
+                        ai_status = "🧠 Connected" if is_ai_available() else "❌ Disconnected"
+                    except ImportError:
+                        ai_status = "📦 Not installed"
+
+                    yield Static(f"🤖 AI Status: {ai_status}")
                     yield Static("")
 
-                    # Group notes by difficulty level
-                    levels = {}
-                    for note in notes[:20]:  # Show first 20
-                        level = note.difficulty_level
-                        if level not in levels:
-                            levels[level] = []
-                        levels[level].append(note)
-
-                    for level in sorted(levels.keys()):
-                        level_notes = levels[level]
-                        yield Static(f"⚔️  Level {level} Enemies ({len(level_notes)} notes):")
-                        for note in level_notes[:5]:  # Show first 5 per level
-                            age_desc = f"{note.age_days}d old" if note.age_days > 0 else "new"
-                            yield Static(f"   • {note.title} ({age_desc})")
-                        if len(level_notes) > 5:
-                            yield Static(f"   ... and {len(level_notes) - 5} more")
+                    if notes:
+                        yield Static(f"Found {len(notes)} notes haunting the forest:")
                         yield Static("")
 
-                    if len(notes) > 20:
-                        yield Static(f"... and {len(notes) - 20} more notes")
-                else:
-                    yield Static("❌ No notes found in vault")
-                    yield Static("")
-                    yield Static("Add some .md files to your Obsidian vault!")
+                        # Group notes by difficulty level
+                        levels = {}
+                        for note in notes[:20]:  # Show first 20
+                            level = note.difficulty_level
+                            if level not in levels:
+                                levels[level] = []
+                            levels[level].append(note)
 
-            except Exception as e:
-                yield Static(f"❌ Error scanning vault: {str(e)[:50]}...")
+                        for level in sorted(levels.keys()):
+                            level_notes = levels[level]
+                            yield Static(f"⚔️  Level {level} Enemies ({len(level_notes)} notes):")
+                            for note in level_notes[:5]:  # Show first 5 per level
+                                age_desc = f"{note.age_days}d old" if note.age_days > 0 else "new"
+                                yield Static(f"   • {note.title} ({age_desc})")
+                            if len(level_notes) > 5:
+                                yield Static(f"   ... and {len(level_notes) - 5} more")
+                            yield Static("")
 
-        yield Static("")
-        yield Static("💡 Notes become forest enemies based on age:")
-        yield Static("   • Recent (< 7 days) = Level 1-2")
-        yield Static("   • Medium (1-3 months) = Level 3-9")
-        yield Static("   • Old (3+ months) = Level 10-12")
-        yield Static("")
-        yield Static("Fight them in the (F)orest to remember their content!")
-        yield Static("")
-        yield Static("Press any key to return to town...")
+                        if len(notes) > 20:
+                            yield Static(f"... and {len(notes) - 20} more notes")
+                    else:
+                        yield Static("❌ No notes found in vault")
+                        yield Static("")
+                        yield Static("Add some .md files to your Obsidian vault!")
+
+                except Exception as e:
+                    yield Static(f"❌ Error scanning vault: {str(e)[:50]}...")
+
+            yield Static("")
+            yield Static("💡 Notes become forest enemies based on age:")
+            yield Static("   • Recent (< 7 days) = Level 1-2")
+            yield Static("   • Medium (1-3 months) = Level 3-9")
+            yield Static("   • Old (3+ months) = Level 10-12")
+            yield Static("")
+            yield Static("Fight them in the (F)orest to remember their content!")
+            yield Static("")
+            yield Button("(R)eturn to town", id="return_town")
+
+    def on_button_pressed(self, event) -> None:
+        """Handle button presses"""
+        if event.button.id == "return_town":
+            self.app.pop_screen()
 
     def on_key(self, event: events.Key) -> None:
         self.app.pop_screen()

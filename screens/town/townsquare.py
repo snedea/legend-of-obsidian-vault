@@ -5,7 +5,7 @@ import datetime
 from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Static, Button
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, Container, VerticalScroll
 from textual import events
 
 
@@ -16,54 +16,65 @@ class TownSquareScreen(Screen):
         # Delayed import to avoid circular dependency
         import lov
 
-        yield Static("The Legend of the Red Dragon - Town Square", classes="header")
-        yield Static("=-" * 60, classes="separator")
-        yield Static("The streets are crowded, it is difficult to")
-        yield Static("push your way through the mob....")
-        yield Static("")
+        with Container(classes="main-border") as container:
+            container.border_title = "🏰  TOWN SQUARE  🏰"
+            container.border_subtitle = "⚔️ Hub of Adventure ⚔️"
+            yield Static("The Legend of the Red Dragon - Town Square", classes="header")
+            yield Static("=-" * 60, classes="separator")
+            yield Static("The streets are crowded, it is difficult to")
+            yield Static("push your way through the mob....")
+            yield Static("")
 
-        # Two-column layout like original LORD
-        with Horizontal():
-            with Vertical():
-                yield Button("(F)orest", id="forest")
-                yield Button("(K)ing Arthurs Weapons", id="weapons")
-                yield Button("(H)ealers Hut", id="healer")
-                yield Button("(I)nn", id="inn")
-                yield Button("(Y)e Old Bank", id="bank")
-                yield Button("(W)rite Mail", id="mail")
-                yield Button("(C)onjugality List", id="marriage")
-                yield Button("(N)otes in the Vault", id="notes")
-                yield Button("(X)pert Mode", id="expert")
-                yield Button("(P)eople Online", id="online")
+            # Main menu options - 3-column layout with scrolling
+            with VerticalScroll(classes="town-scroll"):
+                with Horizontal():
+                    with Vertical():
+                        # First column - 7 buttons
+                        yield Button("(F)orest", id="forest")
+                        yield Button("(S)laughter other players", id="pvp")
+                        yield Button("(K)ing Arthurs Weapons", id="weapons")
+                        yield Button("(A)bduls Armour", id="armor")
+                        yield Button("(H)ealers Hut", id="healer")
+                        yield Button("(V)iew your stats", id="stats")
+                        yield Button("(I)nn", id="inn")
 
-            with Vertical():
-                yield Button("(S)laughter other players", id="pvp")
-                yield Button("(A)bduls Armour", id="armor")
-                yield Button("(V)iew your stats", id="stats")
-                yield Button("(T)urgons Warrior Training", id="training")
-                yield Button("(L)ist Warriors", id="list")
-                yield Button("(D)aily News", id="news")
-                yield Button("(O)ther Places", id="other")
-                yield Button("(M)ake Announcement", id="announce")
-                yield Button("(Q)uit to Fields", id="quit")
+                    with Vertical():
+                        # Second column - 6 buttons
+                        yield Button("(T)urgons Warrior Training", id="training")
+                        yield Button("(Y)e Old Bank", id="bank")
+                        yield Button("(L)ist Warriors", id="list")
+                        yield Button("(W)rite Mail", id="mail")
+                        yield Button("(D)aily News", id="news")
+                        yield Button("(C)onjugality List", id="marriage")
 
-        yield Static("")
-        yield Static("The Town Square  (? for menu)")
-        yield Static(f"(F,S,K,A,H,V,R,T,Y,L,W,D,C,N,O,X,M,P,Q)")
-        yield Static("")
+                    with Vertical():
+                        # Third column - 6 buttons
+                        yield Button("(O)ther Places", id="other")
+                        yield Button("(N)otes in the Vault", id="notes")
+                        yield Button("(M)ake Announcement", id="announce")
+                        yield Button("(X)pert Mode", id="expert")
+                        yield Button("(P)eople Online", id="online")
+                        yield Button("(Q)uit to Fields", id="quit")
 
-        # Status line
-        if lov.current_player:
-            time_left = f"{lov.current_player.forest_fights:02d}:{lov.current_player.player_fights:02d}"
-            yield Static(f"Your command, {lov.current_player.name}? [{time_left}] :", classes="prompt")
+            yield Static("")
+            yield Static("The Town Square  (? for menu)")
+            yield Static(f"(F,S,K,A,H,V,R,T,Y,L,W,D,C,N,O,X,M,P,Q)")
+            yield Static("")
+
+            # Status line
+            if lov.current_player:
+                time_left = f"{lov.current_player.forest_fights:02d}:{lov.current_player.player_fights:02d}"
+                yield Static(f"Your command, {lov.current_player.name}? [{time_left}] :", classes="prompt")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle menu selections"""
+        """Handle button presses for touchscreen/mouse support"""
+        self._handle_menu_action(event.button.id)
+
+    def _handle_menu_action(self, action: str) -> None:
+        """Handle menu action for both keyboard and button presses"""
         # Delayed import to avoid circular dependency
         import lov
         from screens.combat.forest import ForestScreen
-
-        action = event.button.id
 
         if action == "forest":
             self.app.push_screen(ForestScreen())
@@ -117,5 +128,4 @@ class TownSquareScreen(Screen):
         }
 
         if key in menu_map:
-            # Simulate button press
-            self.on_button_pressed(type('Event', (), {'button': type('Button', (), {'id': menu_map[key]})})())
+            self._handle_menu_action(menu_map[key])
