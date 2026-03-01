@@ -47,10 +47,10 @@ class GemTradingScreen(Screen):
             lov.current_player.gems -= 2
 
             if stat_type == "defense":
-                lov.current_player.defense_power += 1
+                lov.current_player.defense += 1
                 stat_name = "Defense"
             elif stat_type == "strength":
-                lov.current_player.attack_power += 1
+                lov.current_player.strength += 1
                 stat_name = "Strength"
             elif stat_type == "hitpoints":
                 lov.current_player.max_hitpoints += 1

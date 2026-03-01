@@ -4,10 +4,99 @@ Exact LORD mechanics and data structures
 """
 import sqlite3
 import random
+import json
 from datetime import datetime, date
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Tuple
 from pathlib import Path
+from enum import Enum
+
+
+class DifficultyMode(Enum):
+    """Enemy difficulty calculation modes"""
+    AGE_BASED = "age_based"          # Default: older notes = harder enemies
+    RANDOM = "random"                 # Random difficulty 1-12
+    PLAYER_LEVEL = "player_level"     # Match player level (balanced)
+    CONTENT_COMPLEXITY = "content"    # Based on note content length/complexity
+    AI_DETERMINED = "ai"              # AI analyzes note to determine difficulty
+
+
+class AIProviderType(Enum):
+    """AI provider options for quiz and narrative generation"""
+    TINYLLAMA = "tinyllama"      # Local TinyLlama 1.1B - free, offline
+    CLAUDE_CLI = "claude_cli"    # Claude Code CLI - uses existing subscription
+    CLAUDE_API = "claude_api"    # Anthropic API - requires API key
+
+
+# Available Claude models for selection
+CLAUDE_MODELS = [
+    ("claude-3-5-haiku-20241022", "Haiku 3.5 (Fast, ~$0.001/quiz)"),
+    ("claude-sonnet-4-20250514", "Sonnet 4 (Balanced, ~$0.003/quiz)"),
+    ("claude-opus-4-5-20250131", "Opus 4.5 (Best quality, ~$0.015/quiz)")
+]
+
+
+@dataclass
+class GameSettings:
+    """Game configuration settings"""
+    difficulty_mode: DifficultyMode = DifficultyMode.AGE_BASED
+    ai_narratives_enabled: bool = True
+    quiz_attacks_enabled: bool = True
+
+    # Difficulty scaling options
+    difficulty_variance: int = 2  # +/- variance for random modes
+    min_difficulty: int = 1
+    max_difficulty: int = 12
+
+    # AI Provider settings
+    ai_provider: AIProviderType = AIProviderType.TINYLLAMA
+    claude_api_key: str = ""  # For CLAUDE_API mode
+    claude_model: str = "claude-sonnet-4-20250514"  # Default Claude model
+
+    @classmethod
+    def load(cls, path: str = "saves/settings.json") -> "GameSettings":
+        """Load settings from file"""
+        settings_path = Path(path)
+        if settings_path.exists():
+            try:
+                with open(settings_path, 'r') as f:
+                    data = json.load(f)
+                return cls(
+                    difficulty_mode=DifficultyMode(data.get("difficulty_mode", "age_based")),
+                    ai_narratives_enabled=data.get("ai_narratives_enabled", True),
+                    quiz_attacks_enabled=data.get("quiz_attacks_enabled", True),
+                    difficulty_variance=data.get("difficulty_variance", 2),
+                    min_difficulty=data.get("min_difficulty", 1),
+                    max_difficulty=data.get("max_difficulty", 12),
+                    ai_provider=AIProviderType(data.get("ai_provider", "tinyllama")),
+                    claude_api_key=data.get("claude_api_key", ""),
+                    claude_model=data.get("claude_model", "claude-sonnet-4-20250514")
+                )
+            except (json.JSONDecodeError, ValueError):
+                pass
+        return cls()
+
+    def save(self, path: str = "saves/settings.json"):
+        """Save settings to file"""
+        settings_path = Path(path)
+        settings_path.parent.mkdir(exist_ok=True)
+        data = {
+            "difficulty_mode": self.difficulty_mode.value,
+            "ai_narratives_enabled": self.ai_narratives_enabled,
+            "quiz_attacks_enabled": self.quiz_attacks_enabled,
+            "difficulty_variance": self.difficulty_variance,
+            "min_difficulty": self.min_difficulty,
+            "max_difficulty": self.max_difficulty,
+            "ai_provider": self.ai_provider.value,
+            "claude_api_key": self.claude_api_key,
+            "claude_model": self.claude_model
+        }
+        with open(settings_path, 'w') as f:
+            json.dump(data, f, indent=2)
+
+
+# Global game settings instance
+game_settings = GameSettings.load()
 
 # VGA/ANSI Color Palette (Exact BBS colors)
 BBS_COLORS = {
@@ -260,6 +349,8 @@ class Character:
     weapon_num: int = 0
     armor: str = "Coat"
     armor_num: int = 0
+    strength: int = 10
+    defense: int = 1
     charm: int = 0
     gems: int = 0
     horse: bool = False
@@ -315,17 +406,15 @@ class Character:
 
     @property
     def attack_power(self) -> int:
-        """Calculate total attack power"""
+        """Total attack: base strength + weapon stat value"""
         weapon_power = WEAPONS[self.weapon_num][2] if self.weapon_num < len(WEAPONS) else 5
-        level_bonus = self.level * 2
-        return weapon_power + level_bonus
+        return self.strength + weapon_power
 
     @property
     def defense_power(self) -> int:
-        """Calculate total defense power"""
+        """Total defense: base defense + armor stat value"""
         armor_power = ARMOR[self.armor_num][2] if self.armor_num < len(ARMOR) else 5
-        level_bonus = self.level
-        return armor_power + level_bonus
+        return self.defense + armor_power
 
     def can_level_up(self) -> bool:
         """Check if player can level up"""
@@ -362,14 +451,20 @@ class Character:
         # Apply authentic LORD stat gains
         gains = LEVEL_GAINS.get(self.level, {'hp': 0, 'str': 0, 'def': 0})
         hp_gain = gains['hp']
+        str_gain = gains['str']
+        def_gain = gains['def']
 
         self.max_hitpoints += hp_gain
         self.hitpoints = self.max_hitpoints  # Full heal on level up
+        self.strength += str_gain
+        self.defense += def_gain
 
         return {
             'old_level': old_level,
             'new_level': self.level,
             'hp_gain': hp_gain,
+            'str_gain': str_gain,
+            'def_gain': def_gain,
             'master': MASTERS.get(old_level),
             'level_up_text': MASTERS.get(old_level, {}).get('level_up_text', f"You are now level {self.level}!")
         }
@@ -500,8 +595,8 @@ class ObsidianNote:
         return (datetime.now() - self.modified).days
 
     @property
-    def difficulty_level(self) -> int:
-        """Difficulty based on age - older notes are harder"""
+    def age_based_difficulty(self) -> int:
+        """Original age-based difficulty: older notes = harder enemies"""
         if self.age_days < 7:
             return 1
         elif self.age_days < 30:
@@ -510,6 +605,86 @@ class ObsidianNote:
             return min(7 + (self.age_days // 30), 9)
         else:
             return min(10 + (self.age_days // 90), 12)
+
+    @property
+    def content_complexity(self) -> int:
+        """Difficulty based on note content complexity"""
+        # Factors: length, number of headings, code blocks, links
+        score = 0
+
+        # Content length factor (0-4 points)
+        length = len(self.content)
+        if length > 5000:
+            score += 4
+        elif length > 2000:
+            score += 3
+        elif length > 500:
+            score += 2
+        elif length > 100:
+            score += 1
+
+        # Heading count (0-3 points)
+        headings = self.content.count('#')
+        score += min(headings // 3, 3)
+
+        # Code blocks (0-2 points)
+        code_blocks = self.content.count('```')
+        score += min(code_blocks, 2)
+
+        # Links and references (0-2 points)
+        links = self.content.count('[[') + self.content.count('](')
+        score += min(links // 2, 2)
+
+        # Tags (0-1 point)
+        if len(self.tags) > 3:
+            score += 1
+
+        # Map score (0-12) to difficulty (1-12)
+        return max(1, min(score, 12))
+
+    def get_difficulty(self, player_level: int = 1) -> int:
+        """Get difficulty based on current game settings"""
+        mode = game_settings.difficulty_mode
+        variance = game_settings.difficulty_variance
+        min_diff = game_settings.min_difficulty
+        max_diff = game_settings.max_difficulty
+
+        if mode == DifficultyMode.AGE_BASED:
+            return max(min_diff, min(self.age_based_difficulty, max_diff))
+
+        elif mode == DifficultyMode.RANDOM:
+            return random.randint(min_diff, max_diff)
+
+        elif mode == DifficultyMode.PLAYER_LEVEL:
+            # Match player level with some variance
+            base = player_level
+            varied = base + random.randint(-variance, variance)
+            return max(min_diff, min(varied, max_diff))
+
+        elif mode == DifficultyMode.CONTENT_COMPLEXITY:
+            return max(min_diff, min(self.content_complexity, max_diff))
+
+        elif mode == DifficultyMode.AI_DETERMINED:
+            # AI-based difficulty - uses content analysis with randomness
+            # Falls back to a weighted random based on multiple factors
+            factors = [
+                self.age_based_difficulty,
+                self.content_complexity,
+                player_level,
+                random.randint(1, 12)
+            ]
+            # Weighted average with some chaos
+            base = sum(factors) // len(factors)
+            varied = base + random.randint(-variance, variance)
+            return max(min_diff, min(varied, max_diff))
+
+        # Default fallback
+        return self.age_based_difficulty
+
+    @property
+    def difficulty_level(self) -> int:
+        """Difficulty based on current settings (for backwards compatibility)"""
+        return self.get_difficulty()
 
 class GameDatabase:
     """SQLite database for player saves"""
@@ -528,6 +703,8 @@ class GameDatabase:
 
             # Define all expected columns with their SQL types
             expected_columns = [
+                ("strength", "INTEGER DEFAULT 10"),
+                ("defense", "INTEGER DEFAULT 1"),
                 ("death_knight_points", "INTEGER DEFAULT 0"),
                 ("mystical_points", "INTEGER DEFAULT 0"),
                 ("thieving_points", "INTEGER DEFAULT 0"),
@@ -576,6 +753,8 @@ class GameDatabase:
                     weapon_num INTEGER,
                     armor TEXT,
                     armor_num INTEGER,
+                    strength INTEGER DEFAULT 10,
+                    defense INTEGER DEFAULT 1,
                     charm INTEGER,
                     gems INTEGER,
                     horse BOOLEAN,
@@ -610,40 +789,48 @@ class GameDatabase:
                 )
             """)
 
+    # Explicit column list keeps save/load independent of DB column order,
+    # so ALTERed columns (appended at end by SQLite) still map correctly.
+    _PLAYER_COLUMNS = [
+        "name", "gender", "class_type", "level", "experience",
+        "hitpoints", "max_hitpoints", "forest_fights", "player_fights",
+        "gold", "bank_gold", "weapon", "weapon_num", "armor", "armor_num",
+        "strength", "defense", "charm", "gems",
+        "horse", "fairy_blessing", "flirted_violet", "laid_today",
+        "inn_room", "alive", "days_played", "last_played", "skill_uses",
+        "married_to", "married",
+        "death_knight_points", "mystical_points", "thieving_points",
+        "learned_spells", "skills_used_today",
+        "dragon_kills", "times_won_game", "total_kills", "hall_of_honours_entry",
+    ]
+
     def save_player(self, player: Character):
         """Save player to database"""
+        cols = self._PLAYER_COLUMNS
+        placeholders = ", ".join("?" for _ in cols)
+        col_names = ", ".join(cols)
+        values = tuple(getattr(player, c) for c in cols)
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
-                INSERT OR REPLACE INTO players VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                player.name, player.gender, player.class_type, player.level,
-                player.experience, player.hitpoints, player.max_hitpoints,
-                player.forest_fights, player.player_fights, player.gold,
-                player.bank_gold, player.weapon, player.weapon_num,
-                player.armor, player.armor_num, player.charm, player.gems,
-                player.horse, player.fairy_blessing, player.flirted_violet,
-                player.laid_today, player.inn_room, player.alive,
-                player.days_played, player.last_played, player.skill_uses,
-                player.married_to, player.married, player.death_knight_points,
-                player.mystical_points, player.thieving_points, player.learned_spells,
-                player.skills_used_today, player.dragon_kills, player.times_won_game,
-                player.total_kills, player.hall_of_honours_entry
-            ))
+            conn.execute(
+                f"INSERT OR REPLACE INTO players ({col_names}) VALUES ({placeholders})",
+                values,
+            )
 
     def load_player(self, name: str) -> Optional[Character]:
         """Load player from database"""
+        cols = ", ".join(self._PLAYER_COLUMNS)
         with sqlite3.connect(self.db_path) as conn:
-            result = conn.execute("SELECT * FROM players WHERE name = ?", (name,)).fetchone()
-            if result:
-                return Character(*result)
+            row = conn.execute(f"SELECT {cols} FROM players WHERE name = ?", (name,)).fetchone()
+            if row:
+                return Character(**dict(zip(self._PLAYER_COLUMNS, row)))
         return None
 
     def get_all_players(self) -> List[Character]:
         """Get all players for leaderboard"""
+        cols = ", ".join(self._PLAYER_COLUMNS)
         with sqlite3.connect(self.db_path) as conn:
-            results = conn.execute("SELECT * FROM players ORDER BY level DESC, experience DESC").fetchall()
-            return [Character(*row) for row in results]
+            rows = conn.execute(f"SELECT {cols} FROM players ORDER BY level DESC, experience DESC").fetchall()
+            return [Character(**dict(zip(self._PLAYER_COLUMNS, row))) for row in rows]
 
     def is_violet_married(self) -> bool:
         """Check if Violet is married to anyone"""

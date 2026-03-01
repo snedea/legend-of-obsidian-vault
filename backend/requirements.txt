@@ -1,0 +1,12 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+
+# Existing game deps (also in parent requirements.txt)
+aiohttp>=3.8.0
+
+# Local AI (TinyLlama) - optional
+llama-cpp-python>=0.3.1
+huggingface-hub>=0.25.2
+
+# Claude API - optional
+anthropic>=0.39.0

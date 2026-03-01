@@ -1,0 +1,23 @@
+{
+  "name": "legend-of-obsidian-vault",
+  "version": "0.0.5",
+  "description": "A LORD-Inspired Knowledge RPG with Obsidian Vault Integration",
+  "main": "electron/dist/main.js",
+  "private": true,
+  "scripts": {
+    "backend:dev": "cd backend && python3 -m uvicorn main:app --host 127.0.0.1 --port 8742 --reload",
+    "frontend:dev": "cd frontend && npm run dev",
+    "electron:compile": "tsc -p electron/tsconfig.json",
+    "electron:dev": "npm run electron:compile && electron .",
+    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "build:frontend": "cd frontend && npm run build",
+    "build:electron": "npm run electron:compile && npm run build:frontend && electron-builder",
+    "build": "npm run build:electron"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
+    "concurrently": "^9.0.0",
+    "typescript": "^5.6.0"
+  }
+}
