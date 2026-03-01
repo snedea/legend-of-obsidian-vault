@@ -1,61 +1,77 @@
 # TODO - Authentic LORD Implementation Roadmap
 
-## 🧠 **IMMEDIATE PRIORITY: AI Enhancement (Tomorrow's Focus)**
-
-**Mission**: Transform bland "Mosquito of My Themes Directory" encounters into epic fantasy adventures!
-
-### **🔥 Quick Wins for Tomorrow (2-3 hours each)**
-
-#### **Task 1: Enhanced Enemy Names**
-**File**: `obsidian.py` → `_generate_enemy_name()` function
-**Current**: "Mosquito of My Themes Directory" ❌
-**Target**: "Vex'thara the Memory Weaver" ✅
-
-```python
-# Add to obsidian.py:
-FANTASY_TITLES = ["Keeper", "Guardian", "Weaver", "Lord", "Wraith", "Sage"]
-MYSTICAL_PREFIXES = ["Shadow", "Crimson", "Ancient", "Forgotten", "Whisper"]
-KNOWLEDGE_THEMES = {
-    "code": "Codex", "personal": "Memory", "meeting": "Council",
-    "project": "Forge", "documentation": "Archive"
-}
-```
-
-#### **Task 2: Enemy Backstories**
-**File**: `game_data.py` → Extend Enemy class
-**Add Fields**: `backstory`, `personality_type`, `knowledge_domain`
-
-#### **Task 3: Combat Flavor Text**
-**File**: `lov.py` → `CombatScreen._victory()` and attack methods
-**Replace**: "You hit for 15 damage"
-**With**: "Your Python knowledge pierces the guardian's confusion for 15 insight!"
-
-### **📋 Detailed AI Roadmap Available**
-See `TODO_AI_ENHANCEMENT.md` for complete 4-week implementation plan
-
----
-
 ## 🎯 **Mission: Complete LORD v4.00a Clone**
 
 Based on the official LORD FAQ, this roadmap implements **every authentic feature** from the original game.
 
-### ✅ **Working Features (v0.0.2)**
-- Character creation (all 3 classes)
-- Forest combat with note-based enemies
-- **NEW**: Rich AI-generated dungeon master narratives
-- **NEW**: Content-aware encounter descriptions
-- **NEW**: Structured note parsing (headers, lists, numbers)
-- TinyLlama AI quiz generation and narratives
-- Obsidian vault auto-detection
-- Basic town square navigation
-- SQLite save system
-- Authentic BBS-style interface
+**Current Version**: v0.0.5 (Authentic Combat Formula + LORD Secrets Complete)
+
+### ✅ **Completed Features**
+
+**v0.0.5** - Authentic Combat Formula
+- [x] Exact LORD v4.00a combat math (RT Soft FAQ source)
+- [x] Player attack formula: `(strength/2) + random(strength/2)`
+- [x] Enemy attack formula: `(strength/2) + random(strength/2) - defense`
+- [x] Monsters have NO defense (authentic LORD)
+
+**v0.0.4** - LORD Secrets Complete
+- [x] Jennie Codes System (13 authentic codes)
+- [x] 8 IGM Locations (Cavern, Barak's, Fairy Garden, Xenon's, WereWolf, Gateway Portal, etc.)
+- [x] Bank Robbery System (thief + fairy_lore)
+- [x] Fairy Lore combat healing (25-40% max HP)
+- [x] WereWolf curse system with PvP enhancement
+- [x] Complete UI/UX for all IGM locations
+
+**v0.0.3** - UI/UX & Architecture
+- [x] Modular screen architecture (36% code reduction)
+- [x] Final Fantasy-style combat UI with HP bars
+- [x] Healer's Hut (full/partial healing)
+- [x] Ye Old Bank (deposit/withdrawal/interest)
+- [x] Abdul's Armor (15-tier progressive upgrades)
+- [x] Enhanced visual design with ASCII art
+
+**v0.1.0** - Turgon's Training & Hall of Honours
+- [x] 11 Authentic Masters (Halder → Turgon)
+- [x] Exact LORD stat progression per level
+- [x] Master weapons (Short Sword → Able's Sword)
+- [x] Hall of Honours for Dragon Slayers
+- [x] Dragon kill tracking with class-specific endings
+- [x] Database migration system
+
+**v0.0.2** - AI Enhancements
+- [x] Rich AI-generated combat narratives (1600+ chars)
+- [x] Content-aware enemy generation
+- [x] Structured note parsing (headers, lists, numbers)
+- [x] Enhanced template fallback system
+- [x] Complete setup automation (run.sh/run.bat)
+
+**v0.0.1** - Core Systems
+- [x] Character creation (all 3 classes)
+- [x] Forest combat with note-based enemies
+- [x] TinyLlama AI quiz generation
+- [x] Obsidian vault auto-detection
+- [x] Basic town square navigation
+- [x] SQLite save system
+- [x] Authentic BBS-style interface
 
 ---
 
-## 🏗️ **Phase 1: Core Game Systems (v0.1.0)**
+## 🚀 **Next Up: Future Enhancements**
 
-### Skills System Implementation (Critical)
+See [ROADMAP.md](ROADMAP.md) for detailed future plans:
+- v0.1.0: Enhanced Enemy Intelligence
+- v0.2.0: Contextual Combat Narration
+- v0.3.0: Note-Based World Building
+- v0.4.0: Adaptive Learning System
+- v0.5.0: Multiplayer & Social Features
+- v1.0.0: Feature-Complete LORD Recreation
+
+---
+
+## 🏗️ **LORD Parity Tracking**
+
+### Skills System Implementation
+**Priority**: HIGH (v0.6.0)
 **Current State**: Basic class selection only
 
 **Death Knight Skills**:
@@ -77,44 +93,6 @@ Based on the official LORD FAQ, this roadmap implements **every authentic featur
 - [ ] Gem-based learning system
 - [ ] Forest combat advantages
 - [ ] Special abilities against minor enemies
-
-### Turgon's Warrior Training (Critical)
-**Current State**: Basic level progression only
-
-**11 Masters Implementation**:
-- [ ] **Halder** (Level 1) - Short Sword, groin cup advice
-- [ ] **Barak** (Level 2) - Battle Axe, bartender introduction
-- [ ] **Aragorn** (Level 3) - Twin Swords, Violet mention
-- [ ] **Olodrin** (Level 4) - Power Axe, humility lessons
-- [ ] **Sandtiger** (Level 5) - Blessed Sword, eye patch story
-- [ ] **Sparhawk** (Level 6) - Double Bladed Sword, respect teaching
-- [ ] **Atsuko Sensei** (Level 7) - Huge Curved Blade, honor focus
-- [ ] **Aladdin** (Level 8) - Shiny Lamp, genie jokes
-- [ ] **Prince Caspian** (Level 9) - Flashing Rapier, perseverance
-- [ ] **Gandalf** (Level 10) - Huge Fireballs, dragon destiny
-- [ ] **Turgon** (Level 11) - Able's Sword, final challenge
-
-**Authentic Stat Progression**:
-```
-Level  HP Gain  STR Gain  DEF Gain  Experience Needed
-1      20       10        1         1
-2      10       5         2         100
-3      15       7         3         400
-4      20       10        5         1,000
-5      30       12        10        4,000
-6      50       20        15        10,000
-7      75       35        22        40,000
-8      125      50        35        100,000
-9      185      75        60        400,000
-10     250      110       80        1,000,000
-11     350      150       120       4,000,000
-12     550      200       150       10,000,000
-```
-
-**Hall of Honours**:
-- [ ] Dragon kill tracking
-- [ ] Hero recognition system
-- [ ] Game reset mechanics (after 10 wins)
 
 ---
 

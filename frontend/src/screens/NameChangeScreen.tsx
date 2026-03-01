@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function NameChangeScreen() {
   const nav = useNavigate();
@@ -33,6 +34,7 @@ export function NameChangeScreen() {
 
   return (
     <Terminal title="NAME CHANGE" subtitle="New Identity">
+      <SceneCanvas scene="nameChange" />
       <Separator />
       <div className="c-cyan" style={{ padding: '8px 0' }}>
         Enter your new name:
@@ -45,15 +47,7 @@ export function NameChangeScreen() {
           onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
           autoFocus
           maxLength={20}
-          style={{
-            background: '#111',
-            border: '1px solid #555',
-            color: '#0f0',
-            fontFamily: 'inherit',
-            fontSize: 'inherit',
-            padding: '4px 8px',
-            width: '200px',
-          }}
+          style={{ width: '200px' }}
         />
       </div>
       <Separator />

@@ -5,6 +5,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function FairyScreen() {
   const nav = useNavigate();
@@ -31,6 +32,7 @@ export function FairyScreen() {
 
   return (
     <Terminal title="FAIRY GARDEN" subtitle="Enchanted Glade">
+      <SceneCanvas scene="fairy" />
       <Separator />
       <div className="narrative">
         A shimmering glade opens before you. Tiny lights dance among the flowers.

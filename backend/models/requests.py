@@ -38,6 +38,8 @@ class UpdateSettingsRequest(BaseModel):
     ai_provider: Optional[str] = None
     claude_model: Optional[str] = None
     claude_api_key: Optional[str] = None
+    ollama_host: Optional[str] = None
+    ollama_model: Optional[str] = None
 
 
 class XenonTransactionRequest(BaseModel):

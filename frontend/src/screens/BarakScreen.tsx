@@ -5,6 +5,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function BarakScreen() {
   const nav = useNavigate();
@@ -29,6 +30,7 @@ export function BarakScreen() {
 
   return (
     <Terminal title="BARAK'S HOUSE" subtitle="Ancient Warrior">
+      <SceneCanvas scene="barRoom" />
       <Separator />
       <div className="narrative">
         Barak's house is filled with dusty scrolls and ancient weapons.

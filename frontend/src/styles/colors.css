@@ -1,38 +1,44 @@
-/* BBS 16-color ANSI/VGA palette */
+/* Obsidian Vault palette - purple/violet with warm amber accents */
 :root {
-  /* Standard ANSI colors */
-  --bbs-black: #000000;
-  --bbs-red: #aa0000;
-  --bbs-green: #00aa00;
-  --bbs-yellow: #aa5500;
-  --bbs-blue: #0000aa;
-  --bbs-magenta: #aa00aa;
-  --bbs-cyan: #00aaaa;
-  --bbs-white: #aaaaaa;
+  /* Standard ANSI colors - muted, warm */
+  --bbs-black: #0c0a14;
+  --bbs-red: #8a3040;
+  --bbs-green: #2a7a4a;
+  --bbs-yellow: #8a6a20;
+  --bbs-blue: #3a3a7a;
+  --bbs-magenta: #6a2a6a;
+  --bbs-cyan: #4a6a7a;
+  --bbs-white: #9a90aa;
 
-  /* Bright ANSI colors */
-  --bbs-bright-black: #555555;
-  --bbs-bright-red: #ff5555;
-  --bbs-bright-green: #55ff55;
-  --bbs-bright-yellow: #ffff55;
-  --bbs-bright-blue: #5555ff;
-  --bbs-bright-magenta: #ff55ff;
-  --bbs-bright-cyan: #55ffff;
-  --bbs-bright-white: #ffffff;
+  /* Bright ANSI colors - soft jewel tones */
+  --bbs-bright-black: #524a68;
+  --bbs-bright-red: #c45060;
+  --bbs-bright-green: #5cb87a;
+  --bbs-bright-yellow: #c8a04a;
+  --bbs-bright-blue: #6a7abf;
+  --bbs-bright-magenta: #c080d0;
+  --bbs-bright-cyan: #70a0b0;
+  --bbs-bright-white: #d0c8e0;
 
   /* Semantic aliases */
   --bg: var(--bbs-black);
   --fg: var(--bbs-white);
   --fg-bright: var(--bbs-bright-white);
-  --accent: var(--bbs-bright-cyan);
+  --accent: var(--bbs-bright-magenta);
   --gold: var(--bbs-bright-yellow);
   --danger: var(--bbs-bright-red);
   --success: var(--bbs-bright-green);
   --muted: var(--bbs-bright-black);
-  --border: var(--bbs-cyan);
-  --menu-highlight-bg: var(--bbs-blue);
+  --border: #6a4a8a;
+  --menu-highlight-bg: #1a1428;
   --menu-highlight-fg: var(--bbs-bright-yellow);
   --hp-full: var(--bbs-bright-green);
   --hp-mid: var(--bbs-bright-yellow);
   --hp-low: var(--bbs-bright-red);
+
+  /* CRT effect variables */
+  --crt-glow-color: rgba(140, 90, 180, 0.15);
+  --crt-scanline-opacity: 0.06;
+  --crt-vignette-opacity: 0.4;
+  --crt-flicker-min: 0.97;
 }

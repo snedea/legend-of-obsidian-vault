@@ -5,6 +5,7 @@ import { Separator } from '../components/Separator';
 import { StatusBar } from '../components/StatusBar';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function TownSquare() {
   const nav = useNavigate();
@@ -33,12 +34,7 @@ export function TownSquare() {
 
   return (
     <Terminal title="TOWN SQUARE" subtitle={`Day ${player.days_played}`}>
-      <pre className="ascii-art c-cyan">{`
-       ╔═══════════════════════════════════════╗
-       ║         THE TOWN OF LORDIA            ║
-       ║    Where Heroes Gather and Plan       ║
-       ╚═══════════════════════════════════════╝
-`}</pre>
+      <SceneCanvas scene="town" />
       <Separator />
       <div className="menu-columns" style={{ padding: '4px 0' }}>
         <div>

@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function GemTradingScreen() {
   const nav = useNavigate();
@@ -43,6 +44,7 @@ export function GemTradingScreen() {
 
   return (
     <Terminal title="GEM TRADING" subtitle="Power Exchange">
+      <SceneCanvas scene="gems" />
       <Separator />
       <div className="c-cyan" style={{ padding: '8px 0' }}>
         You have {gems} gems. Trade 2 gems for 1 stat point:

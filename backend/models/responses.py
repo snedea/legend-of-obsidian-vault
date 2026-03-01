@@ -284,6 +284,8 @@ class SettingsResponse(BaseModel):
     ai_provider: str
     claude_model: str
     has_api_key: bool
+    ollama_host: str
+    ollama_model: str
 
 
 class AIStatusResponse(BaseModel):

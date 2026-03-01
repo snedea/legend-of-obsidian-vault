@@ -3,19 +3,7 @@ import { Terminal } from '../components/Terminal';
 import { MenuOption } from '../components/MenuOption';
 import { Separator } from '../components/Separator';
 import { useKeyboard } from '../hooks/useKeyboard';
-
-const TITLE_ART = `
-    ██╗     ███████╗ ██████╗ ███████╗███╗   ██╗██████╗
-    ██║     ██╔════╝██╔════╝ ██╔════╝████╗  ██║██╔══██╗
-    ██║     █████╗  ██║  ███╗█████╗  ██╔██╗ ██║██║  ██║
-    ██║     ██╔══╝  ██║   ██║██╔══╝  ██║╚██╗██║██║  ██║
-    ███████╗███████╗╚██████╔╝███████╗██║ ╚████║██████╔╝
-    ╚══════╝╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝╚═════╝
-
-           OF THE OBSIDIAN VAULT
-
-        A LORD-Inspired Knowledge RPG
-`;
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function StartScreen() {
   const nav = useNavigate();
@@ -30,7 +18,7 @@ export function StartScreen() {
 
   return (
     <Terminal title="LEGEND OF THE OBSIDIAN VAULT" subtitle="v0.0.5">
-      <pre className="ascii-art c-cyan" style={{ textAlign: 'center' }}>{TITLE_ART}</pre>
+      <SceneCanvas scene="start" />
       <Separator />
       <div style={{ padding: '8px 0' }}>
         <MenuOption shortcut="N" label="Start New Game" onClick={() => nav('/create')} />

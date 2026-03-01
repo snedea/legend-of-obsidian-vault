@@ -520,6 +520,8 @@ export interface Settings {
   ai_provider: string;
   claude_model: string;
   has_api_key: boolean;
+  ollama_host: string;
+  ollama_model: string;
 }
 
 export interface AIStatus {

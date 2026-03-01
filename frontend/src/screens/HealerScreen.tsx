@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function HealerScreen() {
   const nav = useNavigate();
@@ -40,6 +41,7 @@ export function HealerScreen() {
 
   return (
     <Terminal title="HEALER'S HUT" subtitle="Rest and Recovery">
+      <SceneCanvas scene="healer" />
       <Separator />
       <div className="c-white">HP: {info.current_hp} / {info.max_hp} ({info.hp_missing} missing)</div>
       <div className="c-white">Gold: <span className="c-gold">{info.current_gold.toLocaleString()}</span></div>

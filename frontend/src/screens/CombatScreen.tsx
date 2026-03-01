@@ -8,6 +8,7 @@ import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
 import type { Rewards } from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function CombatScreen() {
   const nav = useNavigate();
@@ -164,9 +165,10 @@ export function CombatScreen() {
 
   return (
     <Terminal title="MYSTICAL ENCOUNTER" subtitle="Battle for Knowledge">
+      <SceneCanvas scene="combat" />
       {/* Narrative */}
       {enemy.encounter_narrative && (
-        <div className="narrative" style={{ maxHeight: '120px', overflow: 'hidden' }}>
+        <div className="narrative" style={{ maxHeight: '200px', overflowY: 'auto' }}>
           {enemy.encounter_narrative}
         </div>
       )}

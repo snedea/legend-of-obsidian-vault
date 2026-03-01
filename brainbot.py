@@ -1,11 +1,13 @@
 """
 BrainBot AI Integration for Legend of the Obsidian Vault
-Direct integration with TinyLlama model for intelligent quiz generation
+Multi-provider AI integration: TinyLlama (local), Claude CLI, Claude API
 """
 import re
 import random
 import threading
 import time
+import subprocess
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
@@ -14,11 +16,19 @@ from dataclasses import dataclass, field
 try:
     from llama_cpp import Llama
     from huggingface_hub import hf_hub_download
-    AI_AVAILABLE = True
+    TINYLLAMA_AVAILABLE = True
 except ImportError:
-    AI_AVAILABLE = False
+    TINYLLAMA_AVAILABLE = False
     Llama = None
     hf_hub_download = None
+
+# Try to import Anthropic SDK
+try:
+    import anthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+    anthropic = None
 
 # TinyLlama model configuration (same as BrainBot)
 MODEL_REPO = "TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF"
@@ -57,6 +67,45 @@ class EnemyDescription:
     environment_description: str = ""
     manifestation_story: str = ""
 
+
+# =============================================================================
+# AI Provider Abstract Base Class
+# =============================================================================
+
+class AIProvider(ABC):
+    """Abstract base class for AI providers"""
+
+    @abstractmethod
+    def initialize(self) -> bool:
+        """Initialize the provider. Returns True if successful."""
+        pass
+
+    @abstractmethod
+    def is_available(self) -> bool:
+        """Check if the provider is ready to use."""
+        pass
+
+    @abstractmethod
+    def generate_quiz_question(self, note_title: str, note_content: str, difficulty: int = 1) -> Optional[QuizQuestion]:
+        """Generate a quiz question from note content."""
+        pass
+
+    @abstractmethod
+    def generate_enemy_description(self, note_title: str, note_content: str, base_enemy: str) -> Optional[EnemyDescription]:
+        """Generate an enemy description from note content."""
+        pass
+
+    @property
+    @abstractmethod
+    def provider_name(self) -> str:
+        """Return the human-readable provider name."""
+        pass
+
+
+# =============================================================================
+# TinyLlama Provider (Local AI)
+# =============================================================================
+
 class LocalAIClient:
     """Local TinyLlama client for AI services"""
 
@@ -70,8 +119,8 @@ class LocalAIClient:
 
     def initialize(self) -> bool:
         """Initialize the local AI model"""
-        if not AI_AVAILABLE:
-            print("🤖 AI libraries not available - using fallback mode")
+        if not TINYLLAMA_AVAILABLE:
+            print("🤖 TinyLlama libraries not available - using fallback mode")
             return False
 
         if self.loading:
@@ -688,6 +737,848 @@ Write ONLY the narrative description:"""
         else:
             return f"Mystical Vestments of {title}"
 
+
+class TinyLlamaProvider(AIProvider):
+    """TinyLlama provider - wraps LocalAIClient to implement AIProvider interface"""
+
+    def __init__(self):
+        self._client = LocalAIClient()
+        self._initialized = False
+
+    def initialize(self) -> bool:
+        """Initialize TinyLlama model"""
+        self._initialized = self._client.initialize()
+        return self._initialized
+
+    def is_available(self) -> bool:
+        """Check if TinyLlama is ready"""
+        return self._client.available
+
+    def generate_quiz_question(self, note_title: str, note_content: str, difficulty: int = 1) -> Optional[QuizQuestion]:
+        """Generate quiz question using TinyLlama"""
+        return self._client.generate_quiz_question(note_title, note_content, difficulty)
+
+    def generate_enemy_description(self, note_title: str, note_content: str, base_enemy: str) -> Optional[EnemyDescription]:
+        """Generate enemy description using TinyLlama"""
+        return self._client.generate_enemy_description(note_title, note_content, base_enemy)
+
+    @property
+    def provider_name(self) -> str:
+        return "TinyLlama (Local)"
+
+
+# =============================================================================
+# Claude CLI Provider
+# =============================================================================
+
+class ClaudeCLIProvider(AIProvider):
+    """Claude CLI provider - uses existing Claude Code subscription via CLI"""
+
+    def __init__(self):
+        self._available = False
+        self._cache = {}
+        self._cache_ttl = 300  # 5 minutes
+
+    def initialize(self) -> bool:
+        """Check if Claude CLI is available and authenticated"""
+        try:
+            result = subprocess.run(
+                ['claude', '--version'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            self._available = result.returncode == 0
+            if self._available:
+                print("🤖 Claude CLI detected and ready")
+            return self._available
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            print("🤖 Claude CLI not found - install Claude Code to use this provider")
+            self._available = False
+            return False
+
+    def is_available(self) -> bool:
+        """Check if Claude CLI is ready"""
+        return self._available
+
+    def _run_claude(self, prompt: str, timeout: int = 30) -> Optional[str]:
+        """Run claude CLI with a prompt and return the response"""
+        try:
+            result = subprocess.run(
+                ['claude', '--print', '--output-format', 'text'],
+                input=prompt,
+                capture_output=True,
+                text=True,
+                timeout=timeout
+            )
+            if result.returncode == 0:
+                return result.stdout.strip()
+            else:
+                print(f"🔥 Claude CLI error: {result.stderr}")
+        except subprocess.TimeoutExpired:
+            print("🔥 Claude CLI timed out")
+        except Exception as e:
+            print(f"🔥 Claude CLI error: {e}")
+        return None
+
+    def generate_quiz_question(self, note_title: str, note_content: str, difficulty: int = 1) -> Optional[QuizQuestion]:
+        """Generate quiz question using Claude CLI"""
+        cache_key = f"quiz_{hash(note_content)}_{difficulty}"
+
+        # Check cache
+        if cache_key in self._cache:
+            cached_time, cached_result = self._cache[cache_key]
+            if time.time() - cached_time < self._cache_ttl:
+                return cached_result
+
+        prompt = f"""Based on this note about "{note_title}":
+
+{note_content[:500]}
+
+Generate a multiple choice quiz question that tests understanding of the key concept.
+
+Create 3 answer options:
+1. One correct answer
+2. One plausible but incorrect answer (similar to correct but wrong in key detail)
+3. One humorous/obviously wrong answer
+
+Format your response exactly as:
+QUESTION: [your question here]
+CORRECT: [the correct answer]
+DECOY: [plausible but incorrect answer]
+FUNNY: [humorous wrong answer]
+TYPE: [definition/concept/relationship/fact]
+
+Make the decoy answer similar enough to confuse someone who doesn't know the material well."""
+
+        response = self._run_claude(prompt)
+        if response:
+            quiz = self._parse_quiz_response(response, note_content, difficulty)
+            if quiz:
+                self._cache[cache_key] = (time.time(), quiz)
+                return quiz
+        return None
+
+    def _parse_quiz_response(self, response: str, note_content: str, difficulty: int) -> Optional[QuizQuestion]:
+        """Parse Claude's quiz response into QuizQuestion object"""
+        question_match = re.search(r'QUESTION:\s*(.+?)(?=CORRECT:|$)', response, re.DOTALL)
+        correct_match = re.search(r'CORRECT:\s*(.+?)(?=DECOY:|$)', response, re.DOTALL)
+        decoy_match = re.search(r'DECOY:\s*(.+?)(?=FUNNY:|$)', response, re.DOTALL)
+        funny_match = re.search(r'FUNNY:\s*(.+?)(?=TYPE:|$)', response, re.DOTALL)
+        type_match = re.search(r'TYPE:\s*(.+?)$', response, re.DOTALL)
+
+        if question_match and correct_match and decoy_match and funny_match:
+            correct_answer = correct_match.group(1).strip()
+            decoy_answer = decoy_match.group(1).strip()
+            funny_answer = funny_match.group(1).strip()
+
+            options = [correct_answer, decoy_answer, funny_answer]
+            random.shuffle(options)
+            correct_index = options.index(correct_answer)
+
+            return QuizQuestion(
+                question=question_match.group(1).strip(),
+                answer=correct_answer,
+                difficulty=difficulty,
+                question_type=type_match.group(1).strip() if type_match else "concept",
+                context=note_content[:200],
+                options=options,
+                correct_index=correct_index
+            )
+        return None
+
+    def generate_enemy_description(self, note_title: str, note_content: str, base_enemy: str) -> Optional[EnemyDescription]:
+        """Generate enemy description using Claude CLI"""
+        cache_key = f"enemy_{hash(note_content)}_{base_enemy}"
+
+        # Check cache
+        if cache_key in self._cache:
+            cached_time, cached_result = self._cache[cache_key]
+            if time.time() - cached_time < self._cache_ttl:
+                return cached_result
+
+        prompt = f"""You are a dungeon master describing a magical encounter. Create a rich, atmospheric description of discovering a mystical realm where the knowledge from this note has come alive:
+
+Title: "{note_title}"
+Content: {note_content[:600]}
+
+Write a 3-4 sentence narrative describing the encounter as a dungeon master would. Include specific details from the note content (numbers, names, concepts, actions). Make it magical and immersive, like the knowledge itself has awakened to challenge intruders. Keep it concise but atmospheric.
+
+Write ONLY the narrative description, nothing else."""
+
+        response = self._run_claude(prompt, timeout=45)
+        if response:
+            enemy_desc = EnemyDescription(
+                name=f"Spirit of {note_title}",
+                description=f"A mystical entity born from the essence of {note_title}",
+                weapon=f"Ethereal Blade of {note_title}",
+                armor=f"Mystical Vestments of {note_title}",
+                backstory=f"Born from the essence of {note_title}, this creature embodies forgotten knowledge.",
+                combat_phrases=[f"Your understanding of {note_title} means nothing to me!"],
+                defeat_message=f"The secrets of {note_title}... are yours to claim...",
+                victory_message=f"The Spirit of {note_title} has fallen!",
+                encounter_narrative=response.strip()
+            )
+            self._cache[cache_key] = (time.time(), enemy_desc)
+            print(f"🎭 Claude CLI generated narrative: {len(response)} chars")
+            return enemy_desc
+        return None
+
+    @property
+    def provider_name(self) -> str:
+        return "Claude CLI (Subscription)"
+
+
+# =============================================================================
+# Claude API Provider
+# =============================================================================
+
+class ClaudeAPIProvider(AIProvider):
+    """Claude API provider - uses Anthropic API with user-provided key"""
+
+    def __init__(self, api_key: str = "", model: str = "claude-sonnet-4-20250514"):
+        self._api_key = api_key
+        self._model = model
+        self._client = None
+        self._available = False
+        self._cache = {}
+        self._cache_ttl = 300  # 5 minutes
+
+    def initialize(self) -> bool:
+        """Initialize Anthropic client with API key"""
+        if not ANTHROPIC_AVAILABLE:
+            print("🤖 Anthropic SDK not installed - run: pip install anthropic")
+            return False
+
+        if not self._api_key:
+            print("🤖 No API key provided for Claude API")
+            return False
+
+        try:
+            self._client = anthropic.Anthropic(api_key=self._api_key)
+            # Test the connection with a minimal request
+            self._client.messages.create(
+                model=self._model,
+                max_tokens=10,
+                messages=[{"role": "user", "content": "Hi"}]
+            )
+            self._available = True
+            print(f"🤖 Claude API ready (model: {self._model})")
+            return True
+        except Exception as e:
+            print(f"🤖 Claude API initialization failed: {e}")
+            self._available = False
+            return False
+
+    def is_available(self) -> bool:
+        """Check if Claude API is ready"""
+        return self._available
+
+    def _generate_text(self, prompt: str, max_tokens: int = 200) -> Optional[str]:
+        """Generate text using Claude API"""
+        if not self._available or not self._client:
+            return None
+
+        try:
+            response = self._client.messages.create(
+                model=self._model,
+                max_tokens=max_tokens,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return response.content[0].text
+        except Exception as e:
+            print(f"🔥 Claude API error: {e}")
+            return None
+
+    def generate_quiz_question(self, note_title: str, note_content: str, difficulty: int = 1) -> Optional[QuizQuestion]:
+        """Generate quiz question using Claude API"""
+        cache_key = f"quiz_{hash(note_content)}_{difficulty}"
+
+        # Check cache
+        if cache_key in self._cache:
+            cached_time, cached_result = self._cache[cache_key]
+            if time.time() - cached_time < self._cache_ttl:
+                return cached_result
+
+        prompt = f"""Based on this note about "{note_title}":
+
+{note_content[:500]}
+
+Generate a multiple choice quiz question that tests understanding of the key concept.
+
+Create 3 answer options:
+1. One correct answer
+2. One plausible but incorrect answer (similar to correct but wrong in key detail)
+3. One humorous/obviously wrong answer
+
+Format your response exactly as:
+QUESTION: [your question here]
+CORRECT: [the correct answer]
+DECOY: [plausible but incorrect answer]
+FUNNY: [humorous wrong answer]
+TYPE: [definition/concept/relationship/fact]
+
+Make the decoy answer similar enough to confuse someone who doesn't know the material well."""
+
+        response = self._generate_text(prompt, max_tokens=200)
+        if response:
+            quiz = self._parse_quiz_response(response, note_content, difficulty)
+            if quiz:
+                self._cache[cache_key] = (time.time(), quiz)
+                return quiz
+        return None
+
+    def _parse_quiz_response(self, response: str, note_content: str, difficulty: int) -> Optional[QuizQuestion]:
+        """Parse Claude's quiz response into QuizQuestion object"""
+        question_match = re.search(r'QUESTION:\s*(.+?)(?=CORRECT:|$)', response, re.DOTALL)
+        correct_match = re.search(r'CORRECT:\s*(.+?)(?=DECOY:|$)', response, re.DOTALL)
+        decoy_match = re.search(r'DECOY:\s*(.+?)(?=FUNNY:|$)', response, re.DOTALL)
+        funny_match = re.search(r'FUNNY:\s*(.+?)(?=TYPE:|$)', response, re.DOTALL)
+        type_match = re.search(r'TYPE:\s*(.+?)$', response, re.DOTALL)
+
+        if question_match and correct_match and decoy_match and funny_match:
+            correct_answer = correct_match.group(1).strip()
+            decoy_answer = decoy_match.group(1).strip()
+            funny_answer = funny_match.group(1).strip()
+
+            options = [correct_answer, decoy_answer, funny_answer]
+            random.shuffle(options)
+            correct_index = options.index(correct_answer)
+
+            return QuizQuestion(
+                question=question_match.group(1).strip(),
+                answer=correct_answer,
+                difficulty=difficulty,
+                question_type=type_match.group(1).strip() if type_match else "concept",
+                context=note_content[:200],
+                options=options,
+                correct_index=correct_index
+            )
+        return None
+
+    def generate_enemy_description(self, note_title: str, note_content: str, base_enemy: str) -> Optional[EnemyDescription]:
+        """Generate enemy description using Claude API"""
+        cache_key = f"enemy_{hash(note_content)}_{base_enemy}"
+
+        # Check cache
+        if cache_key in self._cache:
+            cached_time, cached_result = self._cache[cache_key]
+            if time.time() - cached_time < self._cache_ttl:
+                return cached_result
+
+        prompt = f"""You are a dungeon master describing a magical encounter. Create a rich, atmospheric description of discovering a mystical realm where the knowledge from this note has come alive:
+
+Title: "{note_title}"
+Content: {note_content[:600]}
+
+Write a 3-4 sentence narrative describing the encounter as a dungeon master would. Include specific details from the note content (numbers, names, concepts, actions). Make it magical and immersive, like the knowledge itself has awakened to challenge intruders. Keep it concise but atmospheric.
+
+Write ONLY the narrative description, nothing else."""
+
+        response = self._generate_text(prompt, max_tokens=400)
+        if response:
+            enemy_desc = EnemyDescription(
+                name=f"Spirit of {note_title}",
+                description=f"A mystical entity born from the essence of {note_title}",
+                weapon=f"Ethereal Blade of {note_title}",
+                armor=f"Mystical Vestments of {note_title}",
+                backstory=f"Born from the essence of {note_title}, this creature embodies forgotten knowledge.",
+                combat_phrases=[f"Your understanding of {note_title} means nothing to me!"],
+                defeat_message=f"The secrets of {note_title}... are yours to claim...",
+                victory_message=f"The Spirit of {note_title} has fallen!",
+                encounter_narrative=response.strip()
+            )
+            self._cache[cache_key] = (time.time(), enemy_desc)
+            print(f"🎭 Claude API generated narrative: {len(response)} chars")
+            return enemy_desc
+        return None
+
+    def set_model(self, model: str):
+        """Change the Claude model being used"""
+        self._model = model
+        print(f"🤖 Claude API model changed to: {model}")
+
+    @property
+    def provider_name(self) -> str:
+        return f"Claude API ({self._model.split('-')[1].title()})"
+
+
+# =============================================================================
+# Ollama Provider (Remote GPU)
+# =============================================================================
+
+class OllamaProvider(AIProvider):
+    """Ollama provider - uses remote Ollama server for GPU-accelerated inference"""
+
+    def __init__(self, host: str = "http://100.86.138.79:11434", model: str = "gemma3:4b"):
+        self._host = host.rstrip("/")
+        self._model = model
+        self._available = False
+        self._cache: Dict[str, Tuple[float, Any]] = {}
+        self._cache_ttl = 300  # 5 minutes
+
+    def initialize(self) -> bool:
+        """Test connectivity to Ollama server"""
+        import urllib.request
+        import urllib.error
+        try:
+            req = urllib.request.Request(f"{self._host}/api/tags", method="GET")
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                import json as _json
+                data = _json.loads(resp.read())
+                models = [m.get("name", "") for m in data.get("models", [])]
+                # Check if our model is available (match with or without tag)
+                model_base = self._model.split(":")[0]
+                found = any(model_base in m for m in models)
+                if found:
+                    self._available = True
+                    print(f"🦙 Ollama ready: {self._model} on {self._host}")
+                    return True
+                else:
+                    print(f"🦙 Ollama server reachable but model '{self._model}' not found. Available: {models}")
+                    # Still mark available - the model might be pullable
+                    self._available = True
+                    return True
+        except Exception as e:
+            print(f"🦙 Ollama connection failed ({self._host}): {e}")
+            self._available = False
+            return False
+
+    def is_available(self) -> bool:
+        return self._available
+
+    def _generate_text(self, prompt: str, max_tokens: int = 200) -> Optional[str]:
+        """Generate text using Ollama HTTP API"""
+        if not self._available:
+            return None
+
+        import urllib.request
+        import urllib.error
+        import json as _json
+
+        payload = _json.dumps({
+            "model": self._model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "num_predict": max_tokens,
+                "temperature": 0.7,
+            }
+        }).encode("utf-8")
+
+        try:
+            req = urllib.request.Request(
+                f"{self._host}/api/generate",
+                data=payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = _json.loads(resp.read())
+                return data.get("response", "")
+        except Exception as e:
+            print(f"🦙 Ollama generation error: {e}")
+            return None
+
+    def generate_quiz_question(self, note_title: str, note_content: str, difficulty: int = 1) -> Optional[QuizQuestion]:
+        """Generate quiz question using Ollama"""
+        cache_key = f"quiz_{hash(note_content)}_{difficulty}"
+
+        if cache_key in self._cache:
+            cached_time, cached_result = self._cache[cache_key]
+            if time.time() - cached_time < self._cache_ttl:
+                return cached_result
+
+        prompt = f"""Based on this note about "{note_title}":
+
+{note_content[:500]}
+
+Generate a multiple choice quiz question that tests understanding of the key concept.
+
+Create 3 answer options:
+1. One correct answer
+2. One plausible but incorrect answer (similar to correct but wrong in key detail)
+3. One humorous/obviously wrong answer
+
+Format your response exactly as:
+QUESTION: [your question here]
+CORRECT: [the correct answer]
+DECOY: [plausible but incorrect answer]
+FUNNY: [humorous wrong answer]
+TYPE: [definition/concept/relationship/fact]
+
+Make the decoy answer similar enough to confuse someone who doesn't know the material well."""
+
+        response = self._generate_text(prompt, max_tokens=200)
+        if response:
+            quiz = self._parse_quiz_response(response, note_content, difficulty)
+            if quiz:
+                self._cache[cache_key] = (time.time(), quiz)
+                return quiz
+        return None
+
+    def _parse_quiz_response(self, response: str, note_content: str, difficulty: int) -> Optional[QuizQuestion]:
+        """Parse Ollama's quiz response into QuizQuestion object"""
+        question_match = re.search(r'QUESTION:\s*(.+?)(?=CORRECT:|$)', response, re.DOTALL)
+        correct_match = re.search(r'CORRECT:\s*(.+?)(?=DECOY:|$)', response, re.DOTALL)
+        decoy_match = re.search(r'DECOY:\s*(.+?)(?=FUNNY:|$)', response, re.DOTALL)
+        funny_match = re.search(r'FUNNY:\s*(.+?)(?=TYPE:|$)', response, re.DOTALL)
+        type_match = re.search(r'TYPE:\s*(.+?)$', response, re.DOTALL)
+
+        if question_match and correct_match and decoy_match and funny_match:
+            correct_answer = correct_match.group(1).strip()
+            decoy_answer = decoy_match.group(1).strip()
+            funny_answer = funny_match.group(1).strip()
+
+            options = [correct_answer, decoy_answer, funny_answer]
+            random.shuffle(options)
+            correct_index = options.index(correct_answer)
+
+            return QuizQuestion(
+                question=question_match.group(1).strip(),
+                answer=correct_answer,
+                difficulty=difficulty,
+                question_type=type_match.group(1).strip() if type_match else "concept",
+                context=note_content[:200],
+                options=options,
+                correct_index=correct_index
+            )
+        return None
+
+    def generate_enemy_description(self, note_title: str, note_content: str, base_enemy: str) -> Optional[EnemyDescription]:
+        """Generate enemy description using Ollama"""
+        cache_key = f"enemy_{hash(note_content)}_{base_enemy}"
+
+        if cache_key in self._cache:
+            cached_time, cached_result = self._cache[cache_key]
+            if time.time() - cached_time < self._cache_ttl:
+                return cached_result
+
+        prompt = f"""You are a dungeon master describing a magical encounter. Create a rich, atmospheric description of discovering a mystical realm where the knowledge from this note has come alive:
+
+Title: "{note_title}"
+Content: {note_content[:600]}
+
+Write a 3-4 sentence narrative describing the encounter as a dungeon master would. Include specific details from the note content (numbers, names, concepts, actions). Make it magical and immersive, like the knowledge itself has awakened to challenge intruders. Keep it concise but atmospheric.
+
+Write ONLY the narrative description, nothing else."""
+
+        response = self._generate_text(prompt, max_tokens=400)
+        if response:
+            enemy_desc = EnemyDescription(
+                name=f"Spirit of {note_title}",
+                description=f"A mystical entity born from the essence of {note_title}",
+                weapon=f"Ethereal Blade of {note_title}",
+                armor=f"Mystical Vestments of {note_title}",
+                backstory=f"Born from the essence of {note_title}, this creature embodies forgotten knowledge.",
+                combat_phrases=[f"Your understanding of {note_title} means nothing to me!"],
+                defeat_message=f"The secrets of {note_title}... are yours to claim...",
+                victory_message=f"The Spirit of {note_title} has fallen!",
+                encounter_narrative=response.strip()
+            )
+            self._cache[cache_key] = (time.time(), enemy_desc)
+            print(f"🦙 Ollama generated narrative: {len(response)} chars")
+            return enemy_desc
+        return None
+
+    @property
+    def provider_name(self) -> str:
+        return f"Ollama ({self._model})"
+
+
+# =============================================================================
+# AI Provider Manager
+# =============================================================================
+
+class AIProviderManager:
+    """Manages AI providers and handles fallback logic"""
+
+    def __init__(self):
+        self._providers: Dict[str, AIProvider] = {}
+        self._current_provider_type: str = "tinyllama"
+        self._initialization_attempted = False
+        self._initialization_complete = False
+        self._initialization_thread = None
+        self._fallback_generator = LocalAIClient()  # For fallback quiz generation
+
+    def register_provider(self, provider_type: str, provider: AIProvider):
+        """Register a provider"""
+        self._providers[provider_type] = provider
+
+    def set_provider(self, provider_type: str) -> bool:
+        """Set the current provider type"""
+        if provider_type in self._providers:
+            self._current_provider_type = provider_type
+            return True
+        return False
+
+    def get_current_provider(self) -> Optional[AIProvider]:
+        """Get the current active provider based on game settings"""
+        # Import settings to get current provider preference
+        from game_data import game_settings, AIProviderType
+
+        # Map AIProviderType enum to provider keys
+        provider_map = {
+            AIProviderType.TINYLLAMA: "tinyllama",
+            AIProviderType.CLAUDE_CLI: "claude_cli",
+            AIProviderType.CLAUDE_API: "claude_api",
+            AIProviderType.OLLAMA: "ollama",
+        }
+
+        # Update internal state to match settings
+        self._current_provider_type = provider_map.get(game_settings.ai_provider, "tinyllama")
+
+        # Lazily create providers if not yet initialized
+        if not self._providers:
+            self._providers = {
+                "tinyllama": TinyLlamaProvider(),
+                "claude_cli": ClaudeCLIProvider(),
+                "claude_api": ClaudeAPIProvider(
+                    api_key=game_settings.claude_api_key,
+                    model=game_settings.claude_model
+                ),
+                "ollama": OllamaProvider(
+                    host=game_settings.ollama_host,
+                    model=game_settings.ollama_model
+                ),
+            }
+
+        return self._providers.get(self._current_provider_type)
+
+    def initialize(self, provider_type: str = None, api_key: str = "", model: str = "claude-sonnet-4-20250514"):
+        """Initialize the AI system with specified provider"""
+        if self._initialization_attempted:
+            return
+
+        self._initialization_attempted = True
+
+        # Import settings
+        from game_data import game_settings, AIProviderType
+
+        # Use settings if not explicitly provided
+        if provider_type is None:
+            provider_type = game_settings.ai_provider.value
+        if not api_key:
+            api_key = game_settings.claude_api_key
+        if model == "claude-sonnet-4-20250514":
+            model = game_settings.claude_model
+
+        # Create providers
+        self._providers = {
+            "tinyllama": TinyLlamaProvider(),
+            "claude_cli": ClaudeCLIProvider(),
+            "claude_api": ClaudeAPIProvider(api_key=api_key, model=model),
+            "ollama": OllamaProvider(
+                host=game_settings.ollama_host,
+                model=game_settings.ollama_model
+            ),
+        }
+
+        self._current_provider_type = provider_type
+
+        def init_thread():
+            try:
+                # Initialize the selected provider
+                provider = self._providers.get(provider_type)
+                if provider:
+                    success = provider.initialize()
+                    if not success and provider_type != "tinyllama":
+                        # Fallback to TinyLlama if preferred provider fails
+                        print(f"⚠️ {provider_type} failed, falling back to TinyLlama")
+                        tinyllama = self._providers.get("tinyllama")
+                        if tinyllama:
+                            tinyllama.initialize()
+                            self._current_provider_type = "tinyllama"
+            finally:
+                self._initialization_complete = True
+
+        # Run initialization in background
+        self._initialization_thread = threading.Thread(target=init_thread, daemon=True)
+        self._initialization_thread.start()
+
+    def wait_for_initialization(self, timeout: float = 3.0) -> bool:
+        """Wait for initialization to complete"""
+        if self._initialization_complete:
+            provider = self.get_current_provider()
+            return provider.is_available() if provider else False
+        if not self._initialization_attempted:
+            self.initialize()
+        if self._initialization_thread:
+            self._initialization_thread.join(timeout=timeout)
+        provider = self.get_current_provider()
+        return provider.is_available() if provider else False
+
+    def is_available(self) -> bool:
+        """Check if current provider is available"""
+        provider = self.get_current_provider()
+        return provider.is_available() if provider else False
+
+    def reinitialize_provider(self) -> None:
+        """Rebuild and re-initialize the current provider from latest settings.
+
+        Called when the user changes ai_provider, ollama_host, or ollama_model
+        at runtime so the live provider instance reflects the new config.
+        """
+        from game_data import game_settings, AIProviderType
+
+        # Sync _current_provider_type from latest settings
+        provider_map = {
+            AIProviderType.TINYLLAMA: "tinyllama",
+            AIProviderType.CLAUDE_CLI: "claude_cli",
+            AIProviderType.CLAUDE_API: "claude_api",
+            AIProviderType.OLLAMA: "ollama",
+        }
+        self._current_provider_type = provider_map.get(game_settings.ai_provider, "tinyllama")
+
+        # Rebuild the specific provider that changed
+        provider_key = self._current_provider_type
+        if provider_key == "ollama":
+            self._providers["ollama"] = OllamaProvider(
+                host=game_settings.ollama_host,
+                model=game_settings.ollama_model
+            )
+        elif provider_key == "claude_api":
+            self._providers["claude_api"] = ClaudeAPIProvider(
+                api_key=game_settings.claude_api_key,
+                model=game_settings.claude_model
+            )
+        elif provider_key == "claude_cli":
+            self._providers["claude_cli"] = ClaudeCLIProvider()
+        elif provider_key == "tinyllama":
+            self._providers["tinyllama"] = TinyLlamaProvider()
+
+        # Re-initialize in background
+        self._initialization_complete = False
+
+        def reinit_thread():
+            try:
+                provider = self._providers.get(provider_key)
+                if provider:
+                    success = provider.initialize()
+                    if not success and provider_key != "tinyllama":
+                        print(f"⚠️ {provider_key} re-init failed, falling back to TinyLlama")
+                        tinyllama = self._providers.get("tinyllama")
+                        if tinyllama and not tinyllama.is_available():
+                            tinyllama.initialize()
+                        self._current_provider_type = "tinyllama"
+            finally:
+                self._initialization_complete = True
+
+        self._initialization_thread = threading.Thread(target=reinit_thread, daemon=True)
+        self._initialization_thread.start()
+
+    @property
+    def initialization_status(self) -> str:
+        """Get current initialization status"""
+        if not self._initialization_attempted:
+            return "not_started"
+        elif not self._initialization_complete:
+            return "initializing"
+        elif self.is_available():
+            return "ready"
+        else:
+            return "failed"
+
+    def generate_quiz_question(self, note_title: str, note_content: str, difficulty: int = 1) -> QuizQuestion:
+        """Generate quiz question with provider fallback"""
+        provider = self.get_current_provider()
+        if provider and provider.is_available():
+            try:
+                quiz = provider.generate_quiz_question(note_title, note_content, difficulty)
+                if quiz:
+                    return quiz
+            except Exception as e:
+                print(f"AI quiz generation failed: {e}")
+
+        # Fallback to regex-based generation
+        return self._fallback_quiz_generation(note_title, note_content)
+
+    def generate_enemy_description(self, note_title: str, note_content: str, base_enemy: str) -> Optional[EnemyDescription]:
+        """Generate enemy description with provider"""
+        provider = self.get_current_provider()
+        if provider and provider.is_available():
+            try:
+                return provider.generate_enemy_description(note_title, note_content, base_enemy)
+            except Exception as e:
+                print(f"AI enemy generation failed: {e}")
+        return None
+
+    def _fallback_quiz_generation(self, note_title: str, note_content: str) -> QuizQuestion:
+        """Fallback quiz generation using regex patterns"""
+        content = note_content.lower()
+
+        # Try to find definition patterns
+        definition_match = re.search(r'(.+?)\s+is\s+(.+?)[.\n]', content)
+        if definition_match:
+            concept = definition_match.group(1).strip()
+            definition = definition_match.group(2).strip()
+
+            question = f"What is {concept}?"
+            correct = definition[:50]
+            decoy = f"A type of {concept.split()[-1] if concept.split() else 'concept'}"
+            funny = "A magical unicorn that grants wishes"
+
+            options = [correct, decoy, funny]
+            random.shuffle(options)
+            correct_index = options.index(correct)
+
+            return QuizQuestion(
+                question=question,
+                answer=correct,
+                difficulty=1,
+                question_type="definition",
+                context=note_content[:200],
+                options=options,
+                correct_index=correct_index
+            )
+
+        # Generic fallback
+        fallback_data = [
+            (f"What category does '{note_title}' belong to?", "knowledge", "random stuff", "interdimensional portals"),
+            (f"When might you use '{note_title}'?", "when learning", "never", "during zombie apocalypse"),
+            (f"Why might '{note_title}' be important?", "for understanding", "it's not important", "to summon dragons"),
+        ]
+
+        question_text, correct, decoy, funny = random.choice(fallback_data)
+        options = [correct, decoy, funny]
+        random.shuffle(options)
+        correct_index = options.index(correct)
+
+        return QuizQuestion(
+            question=question_text,
+            answer=correct,
+            difficulty=1,
+            question_type="general",
+            context=note_content[:200],
+            options=options,
+            correct_index=correct_index
+        )
+
+    def validate_answer(self, user_answer: str, correct_answer: str, ai_question: bool = False) -> bool:
+        """Validate answer with improved matching"""
+        user_lower = user_answer.lower().strip()
+        correct_lower = correct_answer.lower().strip()
+
+        # Exact match
+        if user_lower == correct_lower:
+            return True
+
+        # For AI-generated questions, use more sophisticated matching
+        if ai_question and self.is_available():
+            correct_words = set(word for word in correct_lower.split() if len(word) > 2)
+            user_words = set(word for word in user_lower.split() if len(word) > 2)
+
+            if correct_words and len(user_words.intersection(correct_words)) / len(correct_words) >= 0.5:
+                return True
+
+        # Fallback to simple word matching
+        return any(word in user_lower for word in correct_lower.split() if len(word) > 2)
+
+
+# =============================================================================
+# Legacy AIEnhancedQuizSystem (kept for backwards compatibility)
+# =============================================================================
+
 class AIEnhancedQuizSystem:
     """Enhanced quiz system using local TinyLlama with fallbacks"""
 
@@ -882,31 +1773,65 @@ class AIEnhancedQuizSystem:
         # Fallback to simple word matching
         return any(word in user_lower for word in correct_lower.split() if len(word) > 2)
 
-# Global AI system instance
+# =============================================================================
+# Global Instances and Functions
+# =============================================================================
+
+# New multi-provider manager (preferred)
+ai_provider_manager = AIProviderManager()
+
+# Legacy instance for backwards compatibility
 ai_quiz_system = AIEnhancedQuizSystem()
+
 
 def initialize_ai():
     """Initialize the AI system - call this on game startup"""
+    # Use the new provider manager
+    ai_provider_manager.initialize()
+    # Also initialize legacy system for backwards compatibility
     ai_quiz_system.initialize()
+
 
 def is_ai_available(wait_timeout: float = 1.0) -> bool:
     """Check if AI is available, with optional brief wait for initialization"""
-    # If already available or failed, return immediately
+    # Try new provider manager first
+    if ai_provider_manager._initialization_attempted:
+        if ai_provider_manager._initialization_complete:
+            return ai_provider_manager.is_available()
+        return ai_provider_manager.wait_for_initialization(timeout=wait_timeout)
+
+    # Fall back to legacy system
     if ai_quiz_system.initialization_complete:
         return ai_quiz_system.ai_available
 
-    # If not started, don't wait (user didn't explicitly request it)
     if not ai_quiz_system.initialization_attempted:
         return False
 
-    # Brief wait for ongoing initialization
     return ai_quiz_system.wait_for_initialization(timeout=wait_timeout)
+
+
+def get_current_provider_name() -> str:
+    """Get the name of the currently active AI provider"""
+    provider = ai_provider_manager.get_current_provider()
+    if provider:
+        return provider.provider_name
+    return "None"
+
 
 # Sync wrapper functions for use in the main game
 def sync_generate_quiz_question(note_title: str, note_content: str, difficulty: int = 1) -> QuizQuestion:
     """Synchronous wrapper for quiz generation"""
+    # Use new provider manager if initialized
+    if ai_provider_manager._initialization_attempted:
+        return ai_provider_manager.generate_quiz_question(note_title, note_content, difficulty)
+    # Fall back to legacy system
     return ai_quiz_system.generate_quiz_question(note_title, note_content, difficulty)
+
 
 def sync_generate_enemy_description(note_title: str, note_content: str, base_enemy: str) -> Optional[EnemyDescription]:
     """Synchronous wrapper for enemy description generation"""
+    # Use new provider manager if initialized
+    if ai_provider_manager._initialization_attempted:
+        return ai_provider_manager.generate_enemy_description(note_title, note_content, base_enemy)
+    # Fall back to legacy system
     return ai_quiz_system.generate_enemy_description(note_title, note_content, base_enemy)

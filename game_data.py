@@ -26,6 +26,7 @@ class AIProviderType(Enum):
     TINYLLAMA = "tinyllama"      # Local TinyLlama 1.1B - free, offline
     CLAUDE_CLI = "claude_cli"    # Claude Code CLI - uses existing subscription
     CLAUDE_API = "claude_api"    # Anthropic API - requires API key
+    OLLAMA = "ollama"            # Remote Ollama server - GPU inference
 
 
 # Available Claude models for selection
@@ -49,9 +50,11 @@ class GameSettings:
     max_difficulty: int = 12
 
     # AI Provider settings
-    ai_provider: AIProviderType = AIProviderType.TINYLLAMA
+    ai_provider: AIProviderType = AIProviderType.OLLAMA
     claude_api_key: str = ""  # For CLAUDE_API mode
     claude_model: str = "claude-sonnet-4-20250514"  # Default Claude model
+    ollama_host: str = "http://100.86.138.79:11434"  # Ollama server (bucky via Tailscale)
+    ollama_model: str = "gemma3:4b"  # Ollama model name
 
     @classmethod
     def load(cls, path: str = "saves/settings.json") -> "GameSettings":
@@ -70,7 +73,9 @@ class GameSettings:
                     max_difficulty=data.get("max_difficulty", 12),
                     ai_provider=AIProviderType(data.get("ai_provider", "tinyllama")),
                     claude_api_key=data.get("claude_api_key", ""),
-                    claude_model=data.get("claude_model", "claude-sonnet-4-20250514")
+                    claude_model=data.get("claude_model", "claude-sonnet-4-20250514"),
+                    ollama_host=data.get("ollama_host", "http://100.86.138.79:11434"),
+                    ollama_model=data.get("ollama_model", "gemma3:4b")
                 )
             except (json.JSONDecodeError, ValueError):
                 pass
@@ -89,7 +94,9 @@ class GameSettings:
             "max_difficulty": self.max_difficulty,
             "ai_provider": self.ai_provider.value,
             "claude_api_key": self.claude_api_key,
-            "claude_model": self.claude_model
+            "claude_model": self.claude_model,
+            "ollama_host": self.ollama_host,
+            "ollama_model": self.ollama_model
         }
         with open(settings_path, 'w') as f:
             json.dump(data, f, indent=2)

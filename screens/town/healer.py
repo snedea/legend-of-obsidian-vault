@@ -24,8 +24,25 @@ class HealerScreen(Screen):
             container.border_title = "🏥 HEALER'S HUT 🏥"
             container.border_subtitle = "💊 Health & Restoration 💊"
 
-            yield Static("🏥 Healer's Hut", classes="header")
-            yield Static("=-" * 30, classes="separator")
+            # ASCII Art - Healer's Hut
+            yield Static("[green]              🏥  HEALER'S HUT  🏥[/green]", classes="header")
+            yield Static("")
+            yield Static("[yellow]                   _____[/yellow]")
+            yield Static("[yellow]                  /     \\[/yellow]")
+            yield Static("[yellow]                 /       \\[/yellow]")
+            yield Static("[yellow]                /_________\\[/yellow]")
+            yield Static("[white]               |  [/white][red]+[/red][white]   [/white][red]+[/red][white]  |[/white]")
+            yield Static("[white]               |    [/white][red]+[/red][white]    |[/white]")
+            yield Static("[white]               |  [/white][red]+[/red][white]   [/white][red]+[/red][white]  |[/white]")
+            yield Static("[white]               |_________|[/white]")
+            yield Static("[green]         ~*~  |   [/green][cyan]|||[/cyan][green]   |  ~*~[/green]")
+            yield Static("[green]        \\|/   |   [/green][cyan]|||[/cyan][green]   |   \\|/[/green]")
+            yield Static("[green]      ---+--- |___|[/green][cyan]O[/cyan][green]|___|---+---[/green]")
+            yield Static("[yellow]       __|____|_________|____||__[/yellow]")
+            yield Static("")
+            yield Static("[cyan]     'Rest weary traveler, and be healed.'[/cyan]")
+            yield Static("")
+            yield Static("[white]=-[/white]" * 24, classes="separator")
             yield Static("")
 
             # Player status

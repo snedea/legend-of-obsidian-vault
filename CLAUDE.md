@@ -1,14 +1,37 @@
 # CLAUDE.md - Developer Documentation
 
+## TL;DR
+
+Legend of the Obsidian Vault (LOV) is an authentic LORD v4.00a clone with Obsidian vault integration and AI-powered combat narratives.
+
+- **Tech Stack**: Python 3.9+, Textual TUI, TinyLlama 1.1B AI, SQLite
+- **Quick Start**: `./run.sh` (Mac/Linux) or `run.bat` (Windows)
+- **Architecture**: Modular screens in `screens/` directory
+- **Current Version**: v0.0.5 (LORD Secrets + AI narratives complete)
+- **Troubleshooting**: See [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- **Roadmap**: See [ROADMAP.md](ROADMAP.md)
+- **Version History**: See [CHANGELOG.md](CHANGELOG.md)
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Architecture & Design](#architecture--design)
+- [Core Components](#core-components)
+- [Combat System](#combat-system)
+- [AI Integration](#ai-integration)
+- [Development Guide](#development-guide)
+- [Performance & Optimization](#performance--optimization)
+- [Known Technical Debt](#known-technical-debt)
+- [Contributing](#contributing)
+- [Credits & References](#credits--references)
+
 ## Project Overview
 
-Legend of the Obsidian Vault (LOV) is an exact clone of the classic BBS game "Legend of the Red Dragon" (LORD) v4.00a, enhanced with Obsidian vault integration and AI-powered quiz combat. This project demonstrates how modern AI can breathe new life into retro gaming while maintaining authentic gameplay mechanics.
-
-## Architecture & Design Philosophy
+Legend of the Obsidian Vault demonstrates how modern AI can enhance retro gaming while maintaining authentic BBS gameplay mechanics. The game transforms your Obsidian notes into enemies, using note content to generate contextual quiz questions and immersive combat narratives.
 
 ### Core Principles
 
-1. **Authenticity First**: Maintain exact LORD mechanics, pricing, and feel
+1. **Authenticity First**: Exact LORD v4.00a mechanics, pricing, and feel
 2. **Knowledge Integration**: Transform note-taking into active gaming
 3. **AI Enhancement**: Intelligent context without replacing human gameplay
 4. **Terminal Native**: Pure text-mode experience with modern tooling
@@ -30,7 +53,9 @@ Legend of the Obsidian Vault (LOV) is an exact clone of the classic BBS game "Le
 - **Markdown Parsing**: Obsidian vault integration
 - **File System Scanning**: Cross-platform vault detection
 
-## File Architecture
+## Architecture & Design
+
+### File Structure
 
 ```
 legend-of-obsidian-vault/
@@ -39,16 +64,27 @@ legend-of-obsidian-vault/
 ├── obsidian.py         # Vault integration and note processing
 ├── brainbot.py         # TinyLlama AI integration
 ├── setup.py            # Auto-installer for dependencies
-├── run.sh              # Mac/Linux launcher script
-├── run.bat             # Windows launcher script
+├── run.sh / run.bat    # Platform-specific launchers
+├── screens/            # Modular screen system
+│   ├── combat/         # Forest, Combat, Quiz screens
+│   ├── town/           # TownSquare, Inn, Bank, Shops, etc.
+│   ├── character/      # Creation, Selection, Stats
+│   └── igm/            # In-Game Modules (8 locations)
 ├── saves/
 │   └── players.db      # SQLite player data
-├── demo_vault/         # Example notes for testing
-├── requirements.txt    # Python dependencies
-├── README.md          # User documentation
-├── CLAUDE.md          # This file - developer docs
-└── TODO.md            # Feature roadmap
+└── demo_vault/         # Example notes for testing
 ```
+
+### Modular Screen Architecture
+
+**v0.0.3 Refactoring**: Reduced `lov.py` from 2,197 → 1,400 lines (36% reduction) by organizing screens into logical modules:
+
+- **Combat System**: `screens/combat/` - Forest, CombatScreen, QuizScreen
+- **Town Locations**: `screens/town/` - All 18+ town locations
+- **Character Management**: `screens/character/` - Creation, selection, stats
+- **IGM System**: `screens/igm/` - 8 LORD Secrets locations
+
+**Key Pattern**: Delayed imports to resolve circular dependencies between screen modules.
 
 ## Core Components
 
@@ -60,17 +96,10 @@ class LordApp(App):
     """Main LORD application with authentic BBS styling"""
 ```
 
-**Screen Management**
-- `WelcomeScreen`: Character selection and vault setup
-- `TownSquareScreen`: Central hub with 18 authentic LORD options
-- `ForestScreen`: Combat initiation and daily limits
-- `CombatScreen`: Real-time battle system with AI integration
-- `QuizScreen`: Knowledge-based combat interface
-
-**Key Design Patterns**
-- **Screen Stack**: Textual's navigation system for authentic BBS feel
-- **Event-Driven**: Keyboard shortcuts match original LORD
-- **State Management**: Global player state with screen isolation
+**Screen Navigation**
+- Textual's screen stack system for authentic BBS feel
+- Keyboard shortcuts match original LORD
+- Global player state with screen isolation
 
 ### 2. Game Mechanics (game_data.py)
 
@@ -82,19 +111,18 @@ class Character:
     level: int = 1
     hitpoints: int = 10
     max_hitpoints: int = 10
-    # ... exact LORD stat progression
+    # 37+ fields for complete LORD Secrets support
 ```
 
 **Weapon/Armor Progression**
 - **15 Weapon Tiers**: Stick (200g) → Death Sword (400M gold)
 - **15 Armor Tiers**: Coat (200g) → Shimmering Armor (400M gold)
-- **Exact LORD Pricing**: Maintains authentic economic progression
+- **Exact LORD Pricing**: Authentic economic progression
 
-**Combat Formulas**
+**Authentic Combat Formula (LORD v4.00a)**
 ```python
-# Authentic LORD v4.00a Formula:
-# HIT_AMOUNT = (strength / 2) + random(strength / 2) - defence
-# If negative, the attack MISSES
+# Source: RT Soft LORD FAQ
+# HIT_AMOUNT = (strength/2) + random(strength/2) - defence
 
 def player_attacks_enemy(player, enemy):
     # Monsters have NO defense in LORD
@@ -112,15 +140,11 @@ def enemy_attacks_player(enemy, player):
 ### 3. Obsidian Integration (obsidian.py)
 
 **Vault Detection Logic**
-```python
-class ObsidianVault:
-    def find_vault(self) -> Optional[Path]:
-        # Searches 15+ common locations including:
-        # - Standard Obsidian folders
-        # - iCloud sync locations
-        # - Custom user directories
-        # - Fallback to any folder with 3+ .md files
-```
+Searches 15+ common locations:
+- Standard Obsidian folders (`~/Documents/Obsidian/`)
+- iCloud sync locations
+- Custom user directories
+- Fallback: any folder with 3+ `.md` files
 
 **Note Processing Pipeline**
 1. **Scan**: Recursive .md file discovery
@@ -128,13 +152,10 @@ class ObsidianVault:
 3. **Classify**: Age-based difficulty assignment
 4. **Cache**: 5-minute memory cache for performance
 
-**Enemy Generation**
-```python
-def get_enemy_for_level(self, level: int, notes: List[ObsidianNote] = None) -> Enemy:
-    # Selects random note regardless of difficulty
-    # Scales stats based on note age vs player level
-    # Generates creative enemy names: "Mosquito of Machine Learning"
-```
+**Enemy Generation** (`obsidian.py:get_enemy_for_level`)
+- Selects random note from vault
+- Scales stats based on note age vs player level
+- Generates creative enemy names: "Mosquito of Machine Learning"
 
 ### 4. AI Integration (brainbot.py)
 
@@ -148,17 +169,16 @@ class LocalAIClient:
 ```
 
 **Background Initialization**
-- **Threading**: AI loads without blocking game startup
-- **Graceful Degradation**: Falls back to regex if AI fails
-- **Model Sharing**: Uses existing BrainBot model cache
+- Threading: AI loads without blocking game startup
+- Graceful Degradation: Falls back to regex if AI fails
+- Model Sharing: Uses existing BrainBot model cache
 
-**Quiz Generation Pipeline**
-1. **Prompt Engineering**: Structured prompts for consistent output
-2. **Response Parsing**: Regex extraction of Q/A/Type
-3. **Validation**: Answer matching with semantic understanding
-4. **Caching**: Prevents regeneration of identical content
+**Enemy Narrative Generation** (`brainbot.py:240-329`)
+- `max_tokens=400` for rich 300-400 word descriptions
+- Incorporates note content (headers, lists, numbers, bold text)
+- Fallback to template-based narratives when AI unavailable
 
-## Combat System Deep Dive
+## Combat System
 
 ### Traditional Combat Flow
 ```
@@ -170,7 +190,18 @@ Player Turn → Enemy Turn → Damage Calculation → Victory/Defeat Check
 Quiz Question → User Input → AI Validation → Critical Hit (2x) or Miss → Continue Combat
 ```
 
-**Quiz Question Generation**
+### Combat Narrative System
+
+**Three-Stage Pipeline**:
+1. **Generation** → `brainbot.py` (AI) or `obsidian.py` (templates)
+2. **Storage** → `Enemy.encounter_narrative` attribute
+3. **Display** → `screens/combat/combat.py:47` renders with wrapping
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed narrative debugging guide.
+
+### Quiz System
+
+**Question Generation** (`brainbot.py`)
 ```python
 def generate_quiz_question(self, note_title: str, note_content: str) -> QuizQuestion:
     prompt = f"""Based on this note about "{note_title}":
@@ -185,222 +216,46 @@ def generate_quiz_question(self, note_title: str, note_content: str) -> QuizQues
 ```
 
 **Answer Validation Logic**
-```python
-def validate_answer(self, user_answer: str, correct_answer: str, ai_question: bool) -> bool:
-    # Exact match check
-    if user_lower == correct_lower: return True
+- Exact match check
+- AI semantic matching (50% word overlap threshold)
+- Fallback keyword matching
 
-    # AI semantic matching (50% word overlap)
-    if ai_question and word_overlap_ratio >= 0.5: return True
+## AI Integration
 
-    # Fallback keyword matching
-    return any(word in user_answer for word in correct_answer.split())
-```
+### What Works Well ✅
+- **TinyLlama 1.1B Integration**: Local AI model running smoothly
+- **Rich Combat Narratives**: 1600+ character immersive descriptions
+- **Content-Aware Generation**: Incorporates note headers, lists, numbers
+- **Response Caching**: 5-minute TTL prevents redundant generation
+- **Graceful Fallback**: Enhanced template narratives when AI unavailable
+- **Background Initialization**: Non-blocking AI startup
 
-## Combat Narrative System Architecture
+### AI Narrative Features (v0.0.2)
+- **Structured Content Parsing**: Extract headers, lists, numbers, bold items
+- **Content-Specific Templates**: Code, meetings, recipes, etc.
+- **Extension Logic**: Ensures 600+ character minimum for fallback narratives
+- **Fantasy Translation**: Technical concepts → magical lore
 
-### Overview: The Three-Stage Narrative Pipeline
+## Development Guide
 
-Combat narratives in LOV flow through three distinct stages, each in a separate file:
+### Setup & Installation
 
-1. **Generation** (AI or Template-based) → `brainbot.py` or `obsidian.py`
-2. **Storage** → `Enemy.encounter_narrative` attribute
-3. **Display Rendering** → `screens/combat/combat.py`
-
-**CRITICAL**: Most narrative issues stem from stage 3 (display), not generation!
-
-### Stage 1: Narrative Generation
-
-#### AI Generation Path (Primary)
-**File**: `/Users/name/homelab/legend_of_obsidian/brainbot.py`
-**Function**: `generate_enemy_from_note()` (lines 240-329)
-**Key Parameters**:
-- Line 282: `max_tokens=400` - Controls AI output length (400 tokens ≈ 300-400 words)
-- Line 273: Prompt instructs "3-4 sentence narrative"
-- Line 286: Stores result in `encounter_narrative` field
-
-```python
-# brainbot.py:282
-response = self.generate_text(prompt, max_tokens=400, generation_type="enemy")
-```
-
-**When to modify**: Only if AI generates too-short content (rare)
-
-#### Template Generation Path (Fallback)
-**File**: `/Users/name/homelab/legend_of_obsidian/obsidian.py`
-**Function**: `_generate_dynamic_encounter_narrative()` (lines 891-1024)
-**Key Features**:
-- Line 893: Reads up to 300 chars of note content for keyword detection
-- Lines 929-990: Content-aware templates (code, meetings, recipes, etc.)
-- Lines 995-1024: Extension logic ensures 600+ character minimum
-
-```python
-# obsidian.py:995-1024 - Ensures rich narratives
-if len(narrative) < 600:
-    extensions = []
-    # Adds atmospheric details from note content
-    if details['numbers'] and len(details['numbers']) > 1:
-        extra_nums = ', '.join(str(n) for n in details['numbers'][1:3])
-        extensions.append(f"Additional mystical frequencies {extra_nums}...")
-```
-
-**When to modify**: If fallback narratives feel generic or too short
-
-### Stage 2: Storage
-**Location**: `game_data.py` - `Enemy` dataclass
-**Field**: `encounter_narrative: str = ""`
-
-This stage is just data storage - no processing happens here.
-
-### Stage 3: Display Rendering (MOST COMMON ISSUE)
-
-**File**: `/Users/name/homelab/legend_of_obsidian/screens/combat/combat.py`
-**Critical Lines**:
-- **Line 47**: `_wrap_narrative_text_smart(encounter_narrative, 75, max_lines=8)`
-  - `75` = character width per line
-  - `max_lines=8` = **DISPLAY LIMIT** (recently fixed from 4 → 8)
-
-**Function**: `_wrap_narrative_text_smart()` (lines 151-195)
-- Line 173-174: Stops processing at `max_lines - 1`
-- Line 181-187: Adds "..." ellipsis when content exceeds limit
-- Line 189-191: Pads with empty lines to ensure consistent height
-
-```python
-# combat.py:47 - THE MOST IMPORTANT LINE FOR NARRATIVE DISPLAY
-narrative_lines = self._wrap_narrative_text_smart(self.enemy.encounter_narrative, 75, max_lines=8)
-```
-
-### Critical Lesson Learned: October 2025 Multi-Hour Debugging Session
-
-#### The Problem
-User reported: "I see only 4 lines with '...' truncation, narratives aren't long enough!"
-
-#### The Wrong Path (2+ hours wasted)
-1. ❌ Edited `ai_engine.py` in `/Users/name/homelab/ai-red-dragon` (WRONG DIRECTORY)
-2. ❌ Increased `max_tokens` from 150 → 800 in wrong files
-3. ❌ Added extension logic to wrong `obsidian.py`
-4. ❌ Blamed cache, AI token limits, stop sequences
-5. ❌ Added debug logging that never appeared (wrong directory!)
-
-**Root Cause Discovery**:
-- User ran game from `/Users/name/homelab/legend_of_obsidian`
-- All edits were in `/Users/name/homelab/ai-red-dragon` (wrong project!)
-- Changes never took effect because they were in the wrong codebase
-
-#### The Actual Root Cause
-**File**: `/Users/name/homelab/legend_of_obsidian/screens/combat/combat.py`
-**Line 47**: Hardcoded `max_lines=4`
-
-```python
-# BEFORE (October 2025)
-narrative_lines = self._wrap_narrative_text_smart(self.enemy.encounter_narrative, 75, max_lines=4)
-# Result: Always shows exactly 4 lines, truncates rest with "..."
-
-# AFTER (Fixed October 2025)
-narrative_lines = self._wrap_narrative_text_smart(self.enemy.encounter_narrative, 75, max_lines=8)
-# Result: Shows up to 8 lines, displays full AI-generated content
-```
-
-**The Fix**: Changed ONE NUMBER from 4 → 8 in combat.py line 47
-
-**Time to Fix**: 5 seconds (after finding the right line)
-**Time Wasted**: 2+ hours (editing wrong directory, wrong functions)
-
-### Quick Reference Guide for Future Claude Instances
-
-#### ✅ FIRST: Verify Working Directory
 ```bash
-# User's actual game location
-/Users/name/homelab/legend_of_obsidian/
+# Clone repository
+git clone https://github.com/snedea/legend-of-obsidian-vault.git
+cd legend-of-obsidian-vault
 
-# NOT this directory (old test copy)
-/Users/name/homelab/ai-red-dragon/  # ❌ WRONG!
+# Quick start (auto-installs dependencies)
+./run.sh           # Mac/Linux
+run.bat            # Windows
+
+# Manual installation
+pip install -r requirements.txt
+python3 lov.py
 ```
-
-**Before making ANY changes, verify**:
-1. Ask user: "What directory are you running the game from?"
-2. Check git status in `/Users/name/homelab/legend_of_obsidian`
-3. Test changes affect the actual running game
-
-#### Common Narrative Modifications
-
-**Change Display Line Count (6-8 lines)**
-- **File**: `screens/combat/combat.py`
-- **Line**: 47
-- **Change**: `max_lines=8` (or any number 1-12)
-- **Impact**: Immediate - controls how many lines render on screen
-
-**Increase AI Generation Length**
-- **File**: `brainbot.py`
-- **Line**: 282
-- **Change**: `max_tokens=400` (current), can increase to 600-800
-- **Impact**: Slower generation, more detailed narratives
-
-**Add/Modify Template Narratives**
-- **File**: `obsidian.py`
-- **Lines**: 929-990 (content-specific templates)
-- **Lines**: 995-1024 (extension logic)
-- **Impact**: Better fallback when AI unavailable
-
-**Adjust Text Wrapping Width**
-- **File**: `screens/combat/combat.py`
-- **Line**: 47
-- **Change**: First parameter (currently `75`)
-- **Impact**: Wider/narrower text columns
-
-#### Debugging Narrative Issues
-
-**Step 1: Identify Which Stage Fails**
-```python
-# Add temporary debug in combat.py compose() method
-print(f"📏 Narrative length: {len(self.enemy.encounter_narrative)} chars")
-print(f"📏 First 100 chars: {self.enemy.encounter_narrative[:100]}")
-```
-
-**Step 2: Check Generation (if empty/generic)**
-```python
-# Check in obsidian.py or brainbot.py
-print(f"🎭 Generated narrative: {encounter_narrative[:200]}")
-```
-
-**Step 3: Check Display (if truncated)**
-```python
-# Check max_lines parameter in combat.py:47
-narrative_lines = self._wrap_narrative_text_smart(..., max_lines=???)
-```
-
-**90% of issues are Stage 3 (display)** - check combat.py:47 first!
-
-#### Working Directory Verification Protocol
-
-When user reports "changes aren't working":
-1. Check: `pwd` or "What directory are you in?"
-2. Verify: Files exist in user's reported directory
-3. Test: `ls screens/combat/combat.py` in correct location
-4. Confirm: Git status shows modifications in correct repo
-
-**Never assume directory location** - always verify!
-
-## Performance Optimizations
-
-### Memory Management
-- **Note Caching**: 5-minute TTL prevents excessive file I/O
-- **AI Response Caching**: Prevents redundant model inference
-- **Lazy Loading**: AI model loads in background thread
-
-### File System Efficiency
-- **Vault Scanning**: Skips .icloud placeholders and templates
-- **Recursive Globbing**: Uses pathlib for cross-platform compatibility
-- **Stat Caching**: Reduces filesystem calls for large vaults
-
-### AI Optimization
-- **Model Selection**: TinyLlama 1.1B balances capability vs resource usage
-- **Context Limiting**: Truncates note content to 500 chars for prompts
-- **Thread Safety**: Background initialization with daemon threads
-
-## Testing & Development
 
 ### Manual Testing Checklist
+
 - [ ] Character creation completes successfully
 - [ ] Obsidian vault detection finds user vault
 - [ ] Forest enemies show note-based names
@@ -408,25 +263,9 @@ When user reports "changes aren't working":
 - [ ] AI gracefully falls back to regex when unavailable
 - [ ] Combat math matches LORD formulas
 - [ ] Save/load preserves all character data
+- [ ] LORD Secrets features work (Jennie codes, IGMs, bank robbery)
 
-### Development Environment Setup
-```bash
-# Clone repository
-git clone https://github.com/snedea/legend-of-obsidian-vault.git
-cd legend-of-obsidian-vault
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run in development mode
-python3 lov.py
-
-# Test individual components
-python3 -c "from obsidian import vault; print(vault.get_vault_path())"
-python3 -c "from brainbot import sync_generate_quiz_question; print(sync_generate_quiz_question('Test', 'Content'))"
-```
-
-### Debugging Tools
+### Testing Individual Components
 
 **Obsidian Vault Testing**
 ```bash
@@ -446,6 +285,48 @@ python3 -c "from brainbot import initialize_ai, is_ai_available; initialize_ai()
 python3 -c "from brainbot import sync_generate_quiz_question; q, a = sync_generate_quiz_question('Test Note', 'Machine learning is a method of data analysis.'); print(f'Q: {q}\\nA: {a}')"
 ```
 
+### Debugging Tips
+
+**Common Issues**:
+1. **Combat narratives truncated?** → Check `screens/combat/combat.py:47` (`max_lines` parameter)
+2. **Changes not taking effect?** → Verify working directory (not `/ai-red-dragon/`)
+3. **AI not loading?** → Check `brainbot.py` threading initialization
+4. **Import errors?** → Review delayed import pattern in screen modules
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for comprehensive debugging guide.
+
+## Performance & Optimization
+
+### Memory Management
+- **Note Caching**: 5-minute TTL prevents excessive file I/O
+- **AI Response Caching**: Prevents redundant model inference
+- **Lazy Loading**: AI model loads in background thread
+
+### File System Efficiency
+- **Vault Scanning**: Skips .icloud placeholders and templates
+- **Recursive Globbing**: Uses pathlib for cross-platform compatibility
+- **Stat Caching**: Reduces filesystem calls for large vaults
+
+### AI Optimization
+- **Model Selection**: TinyLlama 1.1B balances capability vs resource usage
+- **Context Limiting**: Truncates note content to 500-800 chars for prompts
+- **Thread Safety**: Background initialization with daemon threads
+
+### Performance Benchmarks
+
+**Target Performance**:
+- **Startup Time**: < 3 seconds (excluding AI initialization)
+- **AI Initialization**: < 10 seconds first run, < 5 seconds subsequent
+- **Vault Scanning**: < 2 seconds for 1000 notes
+- **Combat Response**: < 100ms for standard attacks
+- **Quiz Generation**: < 3 seconds with AI, < 100ms fallback
+
+**Resource Usage**:
+- **Memory**: 512MB base + 1.5GB for AI model
+- **Storage**: 50MB game + 670MB AI model
+- **CPU**: Single-threaded, occasional bursts for AI inference
+- **Network**: Only for initial model download
+
 ## Known Technical Debt
 
 ### Code Quality Issues
@@ -460,59 +341,37 @@ python3 -c "from brainbot import sync_generate_quiz_question; q, a = sync_genera
 3. **Memory Usage**: TinyLlama model requires ~1.5GB RAM
 4. **File Watching**: No live vault updates (requires restart)
 
-### Missing LORD Features (See TODO.md)
-1. **Inn System**: Violet, Seth, bar room interactions
-2. **Shop Mechanics**: Actual purchase transactions
-3. **Banking**: Interest calculations and gold management
-4. **PvP Combat**: Player vs player battle system
-5. **Daily Events**: News, announcements, random encounters
+### Implemented Features (v0.0.5)
 
-## Security Considerations
+**Combat & Gameplay**:
+- ✅ Authentic LORD v4.00a combat formula
+- ✅ 15-tier weapon/armor progression
+- ✅ Turgon's Warrior Training (11 masters)
+- ✅ Hall of Honours for Dragon Slayers
+- ✅ Enhanced combat statistics tracking
 
-### AI Safety
-- **Local Processing**: No data leaves user's machine
-- **Prompt Injection**: Limited by note content only
-- **Model Safety**: TinyLlama has built-in safety training
+**Shops & Economy**:
+- ✅ Healer's Hut (full/partial healing)
+- ✅ Ye Old Bank (deposit/withdrawal/interest)
+- ✅ Abdul's Armor (progressive upgrades)
+- ✅ Weapon shop system
 
-### File System Access
-- **Sandboxed**: Only reads Obsidian vaults and saves directory
-- **No Execution**: Pure data processing, no code evaluation
-- **User Control**: Vault path explicitly set by user
+**LORD Secrets (v0.0.4)**:
+- ✅ Jennie Codes System (13 authentic codes)
+- ✅ 8 IGM Locations (Cavern, Barak's House, Fairy Garden, etc.)
+- ✅ Bank Robbery System (thief/fairy_lore required)
+- ✅ Fairy Lore combat healing
+- ✅ WereWolf curse system
+- ✅ Gateway Portal adventures
 
-### Data Privacy
-- **Local Storage**: SQLite database in saves/ directory
-- **No Telemetry**: No analytics or usage tracking
-- **Open Source**: All code visible and auditable
+**AI Features (v0.0.2)**:
+- ✅ Rich combat narratives (1600+ chars)
+- ✅ Content-aware enemy generation
+- ✅ Enhanced template fallback system
 
-## Future Architecture Plans
+See [ROADMAP.md](ROADMAP.md) for future enhancement plans.
 
-### v0.1.0 - Inn System
-- **Violet Interaction**: Charm-based romance mechanics
-- **Seth's Songs**: Daily musical performances with stat bonuses
-- **Bar Room**: Social features and random events
-
-### v0.2.0 - Commerce System
-- **Shop Transactions**: Complete weapon/armor purchasing
-- **Inventory Management**: Equipment upgrades and sales
-- **Economic Balance**: LORD-accurate pricing and progression
-
-### v0.3.0 - Banking & Daily Systems
-- **Interest Calculations**: 10% daily compound interest
-- **Time Management**: Daily resets and limit tracking
-- **News System**: Player announcements and game events
-
-### v0.4.0 - PvP Combat
-- **Player Rankings**: Leaderboards and statistics
-- **Combat Mechanics**: Player vs player battle system
-- **Death Penalties**: Authentic LORD consequences
-
-### v1.0.0 - Feature Complete
-- **Random Events**: Olivia's head, old man encounters
-- **Marriage System**: Conjugality list and weddings
-- **Dragon Battle**: Level 12+ endgame content
-- **Achievement System**: Progress tracking and rewards
-
-## Contributing Guidelines
+## Contributing
 
 ### Code Standards
 - **PEP 8**: Python style guide compliance
@@ -532,633 +391,28 @@ python3 -c "from brainbot import sync_generate_quiz_question; q, a = sync_genera
 - **Expected Behavior**: Reference to original LORD if applicable
 - **Actual Behavior**: Detailed description of current state
 
-## Recent Major Updates
-
-### ✅ v0.0.3 - Major UI/UX and Architecture Improvements (September 2025)
-
-#### **Modular Architecture Refactoring**
-Complete reorganization of codebase for maintainability and scalability:
-- **Created screens/ Directory Structure**: Organized 18 screens into logical modules
-  - `screens/combat/`: ForestScreen, CombatScreen, QuizScreen
-  - `screens/town/`: TownSquare, Inn, Weapons, Armor, Bank, Healer, etc.
-  - `screens/character/`: Creation, Selection, Stats screens
-- **36% Code Reduction**: Reduced main lov.py from 2,197 → 1,400 lines
-- **Circular Import Resolution**: Implemented delayed import pattern throughout
-- **Better Code Organization**: Each screen now in its own focused module
-
-#### **Combat UI Complete Redesign**
-Final Fantasy-style combat interface with real-time updates:
-- **Enemy/Player Status Layout**: Clean vertical sections with clear separation
-- **Unicode HP Bars**: Visual health indicators `█░░░░░░░░░ 30%` with percentage
-- **Real-time Updates**: HP bars and stats refresh during combat actions
-- **Color-Coded Stats**: Red for enemy, green for player for immediate clarity
-- **Enhanced Combat Messages**: Emoji-enhanced feedback (⚔️🔥⭐❌)
-
-#### **Functional Shop Implementation**
-Three fully working shops with authentic LORD mechanics:
-
-**Healer's Hut**:
-- Full heal option with level-based pricing (5-500 gold)
-- Partial heal option (1 gold per HP)
-- Interactive input system with validation
-
-**Ye Old Bank**:
-- Deposit/withdrawal with transaction modes
-- 10% daily compound interest system
-- "Deposit All" and "Withdraw All" shortcuts
-- Real-time gold display updates
-
-**Abdul's Armor**:
-- Progressive armor upgrades (15 tiers: Coat → Shimmering Armor)
-- Can only purchase next tier (authentic LORD restriction)
-- Defense improvement calculations and display
-- Authentic LORD pricing maintained
-
-#### **Enhanced Visual Design**
-Immersive ASCII art and color theming:
-
-**Forest Screen**:
-- Mystical forest header with 5 detailed tree canopies
-- Color-coded elements: green trees, brown trunks, white mist
-- "✦ THE MYSTICAL FOREST OF KNOWLEDGE ✦" themed title
-
-**Armor Shop**:
-- Ornate shield and crossed swords design
-- Metallic color scheme: silver shield, gold swords, cyan decorations
-- "⚔️⚜️ ABDUL'S LEGENDARY ARMORY ⚜️⚔️" professional branding
-
-#### **Critical Bug Fixes**
-- **Forest Healer Navigation**: Fixed "not yet available" message → actual healer screen
-- **TownSquare Import Crashes**: Fixed missing screen imports for Turgon's Training, etc.
-- **Combat Header Alignment**: Fixed misaligned box borders
-- **HP Bar Visibility**: Improved contrast with better character selection
-
-### ✅ v0.1.0 - Inn System (September 2025)
-
-### ✅ Turgon's Warrior Training System
-Complete implementation of authentic LORD master progression:
-- **11 Authentic Masters**: Halder through Turgon with exact dialogue
-- **Master Challenge Flow**: Greeting → Challenge → Combat → Level Up
-- **Authentic Stat Progression**: Exact LORD HP/STR/DEF gains per level
-- **Weapon Rewards**: Earn master weapons from Short Sword to Able's Sword
-- **UI Integration**: Full screen system accessible via (T) in Town Square
-
-### ✅ Hall of Honours for Dragon Slayers
-Tracking system for ultimate victories:
-- **Dragon Kill Tracking**: Records Red Dragon defeats with dates
-- **Class-Specific Victory Messages**: Different endings per character class
-- **Rankings Display**: Top 20 dragon slayers with kill counts
-- **Character Reset System**: Authentic LORD post-dragon mechanics
-- **Database Integration**: Persistent statistics across game sessions
-
-### ✅ Database Migration System
-Seamless backward compatibility:
-- **Automatic Schema Updates**: Detects and adds missing columns
-- **Zero Data Loss**: Preserves existing characters during migration
-- **Default Value Handling**: Proper initialization of new fields
-- **37-Field Support**: Complete CHARACTER class compatibility
-
-### ✅ Enhanced Combat Statistics
-Comprehensive progress tracking:
-- **Total Kill Counter**: All enemy defeats tracked
-- **Master Fight Integration**: Separate tracking for training battles
-- **Hall Entry Dates**: Timestamp first dragon victory
-- **Win Streak Tracking**: Multiple dragon kill support
-
-## Current AI Integration Limitations
-
-### What Works Well ✅
-- **TinyLlama 1.1B Integration**: Local AI model running smoothly
-- **Quiz Question Generation**: Context-aware questions from note content
-- **Response Caching**: 5-minute TTL prevents redundant generation
-- **Graceful Fallback**: Regex patterns when AI unavailable
-- **Background Initialization**: Non-blocking AI startup
-
-### What Needs Enhancement ❌
-- **Bland Enemy Names**: "Mosquito of My Themes Directory" lacks fantasy flair
-- **No Combat Narrative**: Missing immersive battle descriptions
-- **Limited Lore Integration**: Notes aren't woven into fantasy storylines
-- **Static Quiz Format**: Questions feel disconnected from combat
-- **Generic Enemy Generation**: No personality or backstory
-- **Folder Structure Ignored**: Directory names not used for world-building
-
-## 🎯 AI Enhancement Roadmap (v0.2.0)
-
-### Phase 1: Dynamic Enemy Lore Generation
-Transform generic encounters into rich fantasy experiences:
-
-#### **Enhanced Enemy Names** (Priority: HIGH)
-**Current**: "Mosquito of My Themes Directory"
-**Target**: "Shadow Weaver, Keeper of Forgotten Themes"
-
-```python
-# AI-Generated Names Based on Note Content
-- Technical notes → "Arcane Codex Guardian"
-- Personal journals → "Memory Wraith"
-- Project docs → "Blueprint Basilisk"
-- Meeting notes → "Council Specter"
-```
-
-#### **Dynamic Backstory Generation** (Priority: HIGH)
-Generate rich enemy lore using note metadata:
-- **Content Analysis**: Extract key concepts from note text
-- **Emotional Tone**: Derive personality from writing style
-- **Age Mapping**: Ancient enemies for old notes, fresh threats for recent ones
-- **Tag Integration**: Use note tags to determine enemy abilities
-
-```python
-# Example Generated Backstory
-"The ancient Mosquito swarms around you, its wings buzzing with
-forgotten knowledge of system architectures. Once a humble debugger's
-companion, it absorbed years of late-night coding sessions and now
-guards the sacred Directory Scrolls with fierce determination."
-```
-
-### Phase 2: Contextual Combat Narration
-Transform combat from stat exchanges to immersive storytelling:
-
-#### **Pre-Battle Narrative** (Priority: MEDIUM)
-- Generate why this enemy guards this specific knowledge
-- Describe environmental details based on note folder structure
-- Create tension with lore-appropriate enemy dialogue
-
-#### **Mid-Combat Flavor Text** (Priority: MEDIUM)
-- Reference note concepts during attacks
-- Generate enemy taunts related to note content
-- Create spell-like effects for technical concepts
-
-```python
-# Example Combat Flow
-Pre-Battle: "You enter the Crimson Archives, where forgotten bug
-reports whisper in the shadows..."
-
-Attack: "The Documentation Demon hurls a bolt of confused requirements!"
-
-Critical Hit: "Your deep understanding of the codebase pierces
-through its defensive obfuscation!"
-```
-
-### Phase 3: Knowledge-to-Fantasy Translation Layer
-Convert any note content into magical fantasy concepts:
-
-#### **Technical Translation** (Priority: HIGH)
-- Code snippets → Arcane formulas and mystical runes
-- Bullet points → Ancient scrolls with sacred markings
-- Timestamps → Prophetic dates and celestial alignments
-- File paths → Mystical locations and dimensional gates
-
-#### **Concept Mapping** (Priority: MEDIUM)
-```python
-FANTASY_TRANSLATIONS = {
-    "function": "ritual spell",
-    "variable": "mystical essence",
-    "database": "ancient tome",
-    "API": "dimensional gateway",
-    "bug": "curse",
-    "feature": "enchantment",
-    "commit": "chronicles entry"
-}
-```
-
-### Phase 4: Enhanced Quiz Integration
-Transform learning into epic narrative moments:
-
-#### **Riddle-Based Combat** (Priority: MEDIUM)
-- Frame quiz questions as enemy riddles
-- Make correct answers unlock enemy weaknesses
-- Generate lore-based explanations for all answers
-
-#### **Adaptive Storytelling** (Priority: LOW)
-- Track player knowledge patterns
-- Generate personalized enemy dialogue
-- Create recurring nemeses based on weak knowledge areas
-
-### Phase 5: Note-Based World Building
-Use vault structure to create living world regions:
-
-#### **Dynamic Forest Regions** (Priority: LOW)
-- Map note folders to forest regions
-- Each region has unique enemy types and themes
-- Generate region descriptions from folder names
-
-```python
-# Example Regions
-"/Projects/WebDev/" → "The Silicon Swamplands"
-"/Personal/Journal/" → "Whispering Memory Meadows"
-"/Work/Meetings/" → "Council Chambers of Confusion"
-```
-
-#### **Living Encyclopedia System** (Priority: LOW)
-- Enemies remember previous encounters
-- Build relationships between related notes
-- Create quest chains from linked/tagged notes
-
-## Implementation Timeline
-
-### Week 1: Quick Wins
-1. ✅ Enhanced enemy name generation templates
-2. ✅ Basic lore generation for common note types
-3. ✅ Improved combat flavor text
-
-### Week 2: Core Narrative
-1. Dynamic backstory generation system
-2. Pre-battle narrative integration
-3. Knowledge-to-fantasy translation layer
-
-### Week 3: Advanced Features
-1. Adaptive quiz storytelling
-2. Note-based region mapping
-3. Enemy personality persistence
-
-### Week 4: Polish & Integration
-1. Performance optimization
-2. Fallback system enhancement
-3. User experience testing
-
-## Technical Architecture
-
-### Enhanced Enemy Data Structure
-```python
-@dataclass
-class EnhancedEnemy(Enemy):
-    backstory: str = ""
-    personality_traits: List[str] = field(default_factory=list)
-    combat_phrases: List[str] = field(default_factory=list)
-    defeat_message: str = ""
-    victory_message: str = ""
-    knowledge_domain: str = ""
-    difficulty_flavor: str = ""
-```
-
-### AI Prompt Engineering
-```python
-def generate_enemy_lore(note: ObsidianNote) -> EnemyLore:
-    """Generate rich fantasy lore from note content"""
-    prompt = f"""
-    Transform this knowledge into a fantasy enemy:
-
-    Note: {note.title}
-    Content: {note.content[:500]}
-    Age: {note.age_days} days old
-    Folder: {note.path.parent.name}
-
-    Create:
-    1. A mystical enemy name (not just "X of Y")
-    2. Why it guards this knowledge (2-3 sentences)
-    3. Its personality and motivations
-    4. 3 combat phrases it speaks
-    5. Victory/defeat messages
-
-    Make it feel like an ancient guardian of sacred knowledge.
-    """
-```
-
-## Performance Benchmarks
-
-### Target Performance
-- **Startup Time**: < 3 seconds (excluding AI initialization)
-- **AI Initialization**: < 10 seconds first run, < 5 seconds subsequent
-- **Vault Scanning**: < 2 seconds for 1000 notes
-- **Combat Response**: < 100ms for standard attacks
-- **Quiz Generation**: < 3 seconds with AI, < 100ms fallback
-
-### Resource Usage
-- **Memory**: 512MB base + 1.5GB for AI model
-- **Storage**: 50MB game + 670MB AI model
-- **CPU**: Single-threaded, occasional bursts for AI inference
-- **Network**: Only for initial model download
-
-## Legacy Compatibility
-
-### LORD v4.00a Parity
-- **Combat Formulas**: Exact damage calculations
-- **Economic System**: Identical pricing and progression
-- **Character Classes**: Same abilities and skill systems
-- **Daily Limits**: 15 forest fights, 3 PvP fights
-- **Level Progression**: Experience and stat growth
-
-### BBS Authenticity
-- **Visual Design**: 16-color ANSI, 80x25 layout compatibility
-- **Navigation**: Keyboard shortcuts match original
-- **Text Content**: Original LORD dialog where applicable
-- **Game Flow**: Screen transitions and menu structure
-
-## Recent Major Updates (September 2025)
-
-### ✅ AI-Powered Dungeon Master Narratives (v0.0.2 - September 27, 2025)
-**Problem**: Combat narratives were generic and didn't utilize note content effectively
-**Solution**: Complete overhaul of AI narrative generation system
-
-**Key Improvements**:
-- **Simplified AI Prompts**: Focused TinyLlama on generating single rich narratives instead of structured fields
-- **Enhanced Context**: Increased from 200 to 800+ characters of note content for AI processing
-- **Structured Content Parsing**: Extract headers, lists, numbers, and bold items from notes
-- **Content-Aware Generation**: AI incorporates specific note details into fantasy descriptions
-- **Fallback Enhancement**: Rich fallback narratives when AI parsing fails
-
-**Technical Implementation**:
-```python
-def _extract_structured_content(self, content: str) -> Dict[str, List]:
-    """Extract headers, lists, numbers from note content"""
-    # Parses markdown headers (# Title)
-    # Extracts list items (-, *, +, 1.)
-    # Finds numbers and bold items
-
-prompt = f"""You are a dungeon master describing a magical encounter...
-Title: "{note_title}"
-Content: {enhanced_content}  # Now includes structured elements
-
-Write a 3-4 sentence narrative incorporating specific details...
-"""
-```
-
-**Results**:
-- **Before**: "You discover the Sanctum of Eternal Knowledge..." (generic)
-- **After**: "You enter the Algorithm Archive where 27 mystical patterns swirl... The ancient text declares 'Machine learning automates model building' as glowing runes..." (1600+ character rich narratives)
-
-**Performance**:
-- AI generates 1600+ character immersive descriptions
-- Incorporates specific numbers, concepts, and text from notes
-- Fallback system provides enhanced narratives when AI unavailable
-- 800ms generation time for rich fantasy encounters
-
-### ✅ Complete Setup Automation System
-**Problem**: Users had to manually install dependencies via pip commands
-**Solution**: Created comprehensive auto-setup infrastructure
-
-**New Files Added**:
-- **`setup.py`**: Auto-installs all dependencies, checks Python version, creates save directories
-- **`run.sh`**: Mac/Linux launcher with first-time setup detection
-- **`run.bat`**: Windows launcher with same functionality
-
-**Features**:
-- **One-Click Launch**: `./run.sh` or `run.bat` handles everything
-- **Dependency Detection**: Auto-installs only when needed
-- **Error Handling**: Clear messages and fallback options
-- **Cross-Platform**: Works on Mac, Linux, and Windows
-
-### ✅ Input System Fixes
-**Problems**: Multiple critical input handling issues
-- Character selection screen completely broken (no keyboard/mouse response)
-- Combat screen missing interactive interface
-- AI initialization blocking startup
-
-**Solutions Applied**:
-
-#### **StartScreen Input Fix**
-- Added `can_focus = True` for keyboard input capability
-- Added `on_mount()` method with `self.focus()` for auto-focus
-- Added clickable button fallbacks for all menu options
-- Enhanced error handling with user notifications
-
-#### **PlayerSelectScreen Complete Rewrite**
-```python
-# Before: Only handled "Q" key, no focus capability
-class PlayerSelectScreen(Screen):
-    def on_key(self, event):
-        if event.key.upper() == "Q": ...
-
-# After: Full input support
-class PlayerSelectScreen(Screen):
-    can_focus = True
-
-    def on_mount(self) -> None:
-        self.focus()
-        self.notify("Character selection ready! Press number keys (1-5) or click")
-
-    def on_key(self, event: events.Key) -> None:
-        if key.isdigit():
-            # Load character by number
-        elif key.upper() == "Q":
-            # Exit to main menu
-```
-
-#### **CombatScreen Interface Completion**
-- Added missing combat button handlers (`_knowledge_attack`, `_show_stats`)
-- Fixed NoMatches error for `#combat_status` element
-- Added `_update_combat_display()` calls for UI synchronization
-- Implemented quiz attack integration with AI
-
-#### **AI Initialization Fix**
-**Problem**: Incorrect async/await usage causing startup crashes
-```python
-# Before: Incorrect - asyncio.create_task() outside event loop
-asyncio.create_task(initialize_ai())
-
-# After: Proper threading for background initialization
-import threading
-ai_thread = threading.Thread(target=initialize_ai, daemon=True)
-ai_thread.start()
-```
-
-### ✅ User Experience Improvements
-
-**Auto-Setup Benefits**:
-- **Zero Configuration**: No manual pip commands required
-- **Professional First-Run**: Automated dependency management
-- **Better Error Messages**: Clear guidance when issues occur
-- **Reduced Support Burden**: Self-contained installation
-
-**Input Reliability**:
-- **Multiple Input Methods**: Both keyboard shortcuts and mouse clicks
-- **Visual Feedback**: Notifications confirm user actions
-- **Focus Management**: Screens automatically receive input focus
-- **Graceful Degradation**: Fallback options when primary input fails
-
-**AI Integration**:
-- **Non-Blocking Startup**: Game loads immediately, AI initializes in background
-- **Status Indicators**: Clear AI connection status in combat and settings
-- **Fallback Mode**: Full functionality without AI dependencies
-
-### ✅ Technical Debt Reduction
-
-**Code Quality Improvements**:
-- Standardized focus management across all screens
-- Consistent event handling patterns
-- Proper async/threading separation
-- Enhanced error handling and user feedback
-
-**Architecture Enhancements**:
-- Separated setup concerns from game logic
-- Cross-platform compatibility improvements
-- Better dependency management
-- Streamlined development workflow
-
-## Recent Major Updates (v0.0.4 - September 2025)
-
-### ✅ Complete LORD Secrets Implementation
-
-The most significant update in the project's history - a comprehensive implementation of all LORD Secrets features that transforms LOV from a basic LORD clone into the most complete and authentic BBS gaming experience available.
-
-#### **🎭 LORD Secrets Features Implemented**
-
-### **1. Jennie Codes System**
-**Files**: `screens/combat/forest.py`
-- **Command Parser**: Hidden command buffer tracking in Forest screen
-- **13 Authentic Codes**: Complete implementation of all LORD secret codes
-- **Frog Transformation**: Complex state management for DUNG code
-- **High Spirits Integration**: Spirit level checking system
-
-```python
-def _handle_command_input(self, key: str):
-    """Handle special command input like Jennie codes"""
-    # Add character to command buffer
-    if key.isalpha() and len(self.command_buffer) < 10:
-        self.command_buffer += key.lower()
-
-    # Check if we have "jennie" followed by a space
-    if self.command_buffer.startswith("jennie ") and len(self.command_buffer) > 7:
-        descriptor = self.command_buffer[7:].strip()
-        if descriptor:
-            self._process_jennie_code(descriptor)
-```
-
-### **2. Complete IGM (In-Game Module) System**
-**Architecture**: `screens/igm/` directory with 8 new interactive locations
-
-#### **LORD Cavern** (`screens/igm/cavern.py`)
-- Daily exploration system (3 searches per day)
-- Riddler encounters with 5 unique riddles and rewards
-- Random treasure hunting with intelligent loot tables
-- Risk/reward mechanics with stat boosts and penalties
-
-#### **Barak's House** (`screens/igm/barak.py`)
-- Scholar sanctuary with book reading system
-- Combat study for random stat improvements
-- Basement gambling den with dice games
-- Aggression tracking based on player behavior
-
-#### **Fairy Garden** (`screens/igm/fairy_garden.py`)
-- Learnable Fairy Lore system (1000 gold investment)
-- Combat healing integration (25-40% max HP restoration)
-- Practice and meditation systems
-- Advanced training options
-
-#### **Xenon's Storage Facility** (`screens/igm/xenon_storage.py`)
-- Strategic resource management with daily storage fees
-- Horse purchasing and naming system
-- Dark trading mechanics (children for resources)
-- Storage limits and fee calculations
-
-#### **WereWolf Den** (`screens/igm/werewolf_den.py`)
-- Werewolf curse learning system (5000 gold)
-- PvP combat enhancement framework
-- Stat stealing mechanics from defeated opponents
-- Risk management (20% chance of losing control)
-
-#### **Gateway Portal** (`screens/igm/gateway_portal.py`)
-- Dimensional travel to scripted adventure realms
-- **Zycho Zircus**: Carnival games, freakshow encounters
-- **Death's Mansion**: High-risk trials with Death himself
-- **Random Portals**: Completely unpredictable adventures
-
-### **3. Advanced Criminal Mechanics**
-**Files**: `screens/town/bank.py`
-- **Bank Robbery System**: Hidden (R)ob command for thieves with fairy_lore
-- **Skill-Based Success**: Complex probability calculation based on thieving points + level
-- **Economic Impact**: Steal 10-30% of total bank deposits
-- **Consequence System**: Heavy penalties for failure
-
-```python
-def _attempt_bank_robbery(self):
-    """Attempt to rob the bank using thief skills and fairy magic"""
-    # Calculate success chance based on thieving points and level
-    base_chance = 30  # 30% base chance
-    thief_bonus = lov.current_player.thieving_points * 5  # 5% per thieving point
-    level_bonus = lov.current_player.level * 2  # 2% per level
-
-    success_chance = min(80, base_chance + thief_bonus + level_bonus)  # Cap at 80%
-```
-
-### **4. Enhanced Combat System**
-**Files**: `screens/combat/combat.py`
-- **Fairy Lore Healing**: Integrated (H)eal command during combat
-- **Dynamic Command Display**: Shows healing option only for fairy_lore users
-- **Healing Mechanics**: 25-40% max HP restoration with rich narrative
-
-```python
-def _fairy_heal(self):
-    """Use Fairy Lore to heal during combat"""
-    # Calculate healing amount (25-40% of max HP)
-    max_heal = int(lov.current_player.max_hitpoints * 0.40)
-    min_heal = int(lov.current_player.max_hitpoints * 0.25)
-    heal_amount = random.randint(min_heal, max_heal)
-```
-
-### **5. Database Architecture Enhancements**
-**Files**: `game_data.py`
-- **Extended Character Model**: Added 12 new fields for LORD Secrets
-- **Automatic Migration**: Seamless backward compatibility
-- **Storage Integration**: Fields for Xenon's Storage facility
-- **WereWolf Framework**: Complete transformation system support
-
-```python
-# LORD Secrets features
-fairy_lore: bool = False  # Can heal during combat
-spirit_level: str = "normal"  # For Jennie codes (normal, high, low)
-cavern_searches_today: int = 0  # Daily LORD Cavern searches
-children: int = 0  # Number of children (strategic resource)
-horse_name: str = ""  # Horse name for storage/trading
-werewolf_uses_today: int = 0  # Daily werewolf transformation limit
-bank_robberies_today: int = 0  # Daily bank robbery attempts
-successful_robberies: int = 0  # Total successful bank robberies
-stored_gold: int = 0  # Gold stored at Xenon's facility
-stored_gems: int = 0  # Gems stored at Xenon's facility
-is_werewolf: bool = False  # Has the werewolf curse
-werewolf_transformations: int = 0  # Total transformations performed
-```
-
-### **6. Complete UI/UX System**
-**Files**: `lov.py` (CSS), `screens/igm/other_places.py`
-- **8 New CSS Style Sets**: Custom themes for each IGM location
-- **Unified Navigation**: "Other Places" menu system
-- **Authentic BBS Styling**: VGA/ANSI color preservation
-- **Keyboard Integration**: Full shortcut support
-
-### **7. Technical Architecture Achievements**
-
-#### **Modular IGM Framework**
-- Created complete `screens/igm/` directory structure
-- 8 new interactive screen modules with consistent architecture
-- Unified navigation system via "Other Places" portal
-
-#### **State Management**
-- Daily limit tracking across all systems
-- Complex state persistence for transformation mechanics
-- Risk/reward balancing algorithms
-
-#### **Event-Driven Design**
-- Hidden command parsing systems
-- Complex input state machines (frog mode, gambling sessions)
-- Dynamic UI generation based on player abilities
-
-#### **Authentic LORD Recreation**
-- All pricing matches original LORD economics
-- Exact dialogue and text from original game
-- Authentic risk/reward mechanics
-- Original Easter egg implementations
-
-### **Performance and Scalability**
-- **Memory Efficiency**: Lazy loading of IGM screens
-- **Database Optimization**: Efficient field additions without breaking existing saves
-- **UI Responsiveness**: Instant screen transitions
-- **Code Organization**: 36% reduction in main file size through modularization
-
-### **Quality Assurance**
-- **Backward Compatibility**: All existing saves work seamlessly
-- **Error Handling**: Comprehensive validation for all new systems
-- **Input Validation**: Robust parsing for hidden commands
-- **State Consistency**: Proper cleanup and refresh mechanisms
-
-This v0.0.4 release represents the completion of the most comprehensive LORD Secrets implementation ever created, transforming Legend of the Obsidian Vault into the definitive authentic BBS gaming experience with modern AI enhancements.
-
-This project serves as both a nostalgic gaming experience and a demonstration of how AI can enhance classic gameplay without compromising authenticity. The architecture balances modern Python practices with faithful recreation of 1990s BBS gaming culture.
+## Security Considerations
+
+### AI Safety
+- **Local Processing**: No data leaves user's machine
+- **Prompt Injection**: Limited by note content only
+- **Model Safety**: TinyLlama has built-in safety training
+
+### File System Access
+- **Sandboxed**: Only reads Obsidian vaults and saves directory
+- **No Execution**: Pure data processing, no code evaluation
+- **User Control**: Vault path explicitly set by user
+
+### Data Privacy
+- **Local Storage**: SQLite database in saves/ directory
+- **No Telemetry**: No analytics or usage tracking
+- **Open Source**: All code visible and auditable
 
 ## Credits & References
 
 ### Original Game
 - **Legend of the Red Dragon (LORD)**: Created by Seth Able Robinson
-- **Combat Formula Source**: [RT Soft LORD FAQ](https://www.rtsoft.com/pages/lordfaq.php) - Provided the authentic LORD v4.00a combat math formula
+- **Combat Formula Source**: [RT Soft LORD FAQ](https://www.rtsoft.com/pages/lordfaq.php) - Provided authentic LORD v4.00a combat math formula
 
 ### Technical Implementations
 - **Authentic Combat Math**: `HIT_AMOUNT = (strength/2) + random(strength/2) - defence`
@@ -1170,3 +424,11 @@ This project serves as both a nostalgic gaming experience and a demonstration of
 - **Textual Framework**: Modern Python TUI framework
 - **TinyLlama**: Local AI integration for narrative generation
 - **SQLite**: Player persistence and game state management
+
+---
+
+This project serves as both a nostalgic gaming experience and a demonstration of how AI can enhance classic gameplay without compromising authenticity. The architecture balances modern Python practices with faithful recreation of 1990s BBS gaming culture.
+
+For detailed version history, see [CHANGELOG.md](CHANGELOG.md).
+For future enhancement plans, see [ROADMAP.md](ROADMAP.md).
+For troubleshooting and debugging, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).

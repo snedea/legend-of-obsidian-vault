@@ -359,6 +359,114 @@ class LordApp(App):
         background: black;
     }
 
+    /* Bank ASCII Art Colors */
+    .bank-title {
+        color: ansi_bright_yellow;
+        background: black;
+        text-style: bold;
+    }
+
+    .bank-vault {
+        color: ansi_bright_white;
+        background: black;
+        text-style: bold;
+    }
+
+    .bank-vault-inner {
+        color: ansi_bright_yellow;
+        background: black;
+        text-style: bold;
+    }
+
+    .bank-gems {
+        color: ansi_bright_cyan;
+        background: black;
+        text-style: bold;
+    }
+
+    .bank-border {
+        color: ansi_white;
+        background: black;
+    }
+
+    .bank-gold {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    .bank-interest {
+        color: ansi_bright_green;
+        background: black;
+        text-style: italic;
+    }
+
+    .bank-prompt {
+        color: ansi_bright_green;
+        background: black;
+    }
+
+    .bank-options {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    .bank-thief-hint {
+        color: ansi_bright_magenta;
+        background: black;
+        text-style: italic;
+    }
+
+    .bank-dialogue {
+        color: ansi_bright_green;
+        background: black;
+    }
+
+    /* Weapons Shop ASCII Art Colors */
+    .weapons-title {
+        color: ansi_bright_yellow;
+        background: black;
+        text-style: bold;
+    }
+
+    .weapons-sword {
+        color: ansi_bright_white;
+        background: black;
+        text-style: bold;
+    }
+
+    .weapons-blade {
+        color: ansi_bright_cyan;
+        background: black;
+        text-style: bold;
+    }
+
+    .weapons-hilt {
+        color: ansi_yellow;
+        background: black;
+        text-style: bold;
+    }
+
+    .weapons-guard {
+        color: ansi_bright_yellow;
+        background: black;
+        text-style: bold;
+    }
+
+    .weapons-border {
+        color: ansi_white;
+        background: black;
+    }
+
+    .weapons-current {
+        color: ansi_bright_cyan;
+        background: black;
+    }
+
+    .weapons-dialogue {
+        color: ansi_bright_green;
+        background: black;
+    }
+
     /* LORD Cavern Styles */
     .cavern-title {
         color: ansi_bright_yellow;
@@ -912,8 +1020,22 @@ class TurgonsTrainingScreen(Screen):
             container.border_title = "🏛️ TURGON'S TRAINING 🏛️"
             container.border_subtitle = "⚔️ Master Progression ⚔️"
 
-            yield Static("🏛️  Turgon's Warrior Training", classes="header")
-            yield Static("=-" * 50, classes="separator")
+            # ASCII Art - Warrior Training
+            yield Static("[yellow]            ⚔️  TURGON'S WARRIOR TRAINING  ⚔️[/yellow]", classes="header")
+            yield Static("")
+            yield Static("[cyan]        /\\                              /\\[/cyan]")
+            yield Static("[cyan]       /  \\    [/cyan][yellow]_____[/yellow][cyan]          [/cyan][yellow]_____[/yellow][cyan]    /  \\[/cyan]")
+            yield Static("[cyan]      / /\\ \\   [/cyan][yellow]|   |[/yellow][cyan]    /\\    [/cyan][yellow]|   |[/yellow][cyan]   / /\\ \\[/cyan]")
+            yield Static("[cyan]     / /  \\ \\  [/cyan][yellow]|___|[/yellow][cyan]   /  \\   [/cyan][yellow]|___|[/yellow][cyan]  / /  \\ \\[/cyan]")
+            yield Static("[cyan]    / /    \\ \\       /    \\        / /    \\ \\[/cyan]")
+            yield Static("[cyan]   /_/      \\_\\    [/cyan][white]/______\\[/white][cyan]     /_/      \\_\\[/cyan]")
+            yield Static("[cyan]      |    |      [/cyan][white]|      |[/white][cyan]      |    |[/cyan]")
+            yield Static("[cyan]      |[/cyan][red]\\  /[/red][cyan]|      [/cyan][white]| [/white][red]O[/red][white]  [/white][red]O[/red][white] |[/white][cyan]      |[/cyan][red]\\  /[/red][cyan]|[/cyan]")
+            yield Static("[cyan]      | [/cyan][red]\\/[/red][cyan] |      [/cyan][white]|  \\/  |[/white][cyan]      | [/cyan][red]\\/[/red][cyan] |[/cyan]")
+            yield Static("[cyan]      |____|      [/cyan][white]|______|[/white][cyan]      |____|[/cyan]")
+            yield Static("[yellow]     WEAPONS        MASTER       SHIELDS[/yellow]")
+            yield Static("")
+            yield Static("[white]=-[/white]" * 30, classes="separator")
             yield Static("")
 
             # Player status
@@ -1227,6 +1349,27 @@ class HallOfHonoursScreen(Screen):
 def main():
     """Run the game"""
     print("🚀 Starting Legend of the Obsidian Vault...")
+
+    # ASCII art for AI initialization
+    ai_art = """
+    ╔═══════════════════════════════════════════╗
+    ║     _____  _____   _____ _   _ _____      ║
+    ║    | __  ||  _  | |_   _| \ | |_   _|     ║
+    ║    | __ -||     |   | | |  \| | | |       ║
+    ║    |_____||__|__|   |_| |_|\__| |_|       ║
+    ║                                           ║
+    ║        ┌──────────────────────┐           ║
+    ║        │  ◉    BRAIN    ◉    │           ║
+    ║        │ ╔══╗  BOT    ╔══╗   │           ║
+    ║        │ ║▓▓║ ~~~~~~~ ║▓▓║   │           ║
+    ║        │ ╚══╝         ╚══╝   │           ║
+    ║        │   ╲    ___    ╱     │           ║
+    ║        │    ╲__│   │__╱      │           ║
+    ║        └──────────────────────┘           ║
+    ║      TinyLlama AI Narrative Engine        ║
+    ╚═══════════════════════════════════════════╝
+    """
+    print(ai_art)
     print("🤖 Initializing AI features...")
 
     # Initialize AI in background using threading

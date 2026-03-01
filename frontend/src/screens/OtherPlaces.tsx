@@ -3,6 +3,7 @@ import { Terminal } from '../components/Terminal';
 import { MenuOption } from '../components/MenuOption';
 import { Separator } from '../components/Separator';
 import { useKeyboard } from '../hooks/useKeyboard';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function OtherPlaces() {
   const nav = useNavigate();
@@ -20,12 +21,7 @@ export function OtherPlaces() {
 
   return (
     <Terminal title="OTHER PLACES" subtitle="Explore the Realm">
-      <pre className="ascii-art c-magenta">{`
-     ╔══════════════════════════════╗
-     ║     MYSTERIOUS LOCATIONS     ║
-     ║   Beyond the Town's Walls    ║
-     ╚══════════════════════════════╝
-`}</pre>
+      <SceneCanvas scene="otherPlaces" />
       <Separator />
       <div style={{ padding: '4px 0' }}>
         <MenuOption shortcut="C" label="Cavern" onClick={() => nav('/places/cavern')} />

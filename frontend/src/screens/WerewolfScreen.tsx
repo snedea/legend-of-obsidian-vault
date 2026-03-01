@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function WerewolfScreen() {
   const nav = useNavigate();
@@ -50,6 +51,7 @@ export function WerewolfScreen() {
 
   return (
     <Terminal title="WEREWOLF DEN" subtitle="The Pack Awaits">
+      <SceneCanvas scene="werewolf" />
       <Separator />
       <div className="narrative">
         {status.is_werewolf

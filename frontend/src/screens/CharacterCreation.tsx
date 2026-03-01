@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 type Step = 'name' | 'gender' | 'class';
 
@@ -47,11 +48,7 @@ export function CharacterCreation() {
 
   return (
     <Terminal title="CHARACTER CREATION" subtitle="Forge Your Legend">
-      <pre className="ascii-art c-yellow">{`
-     ╔══════════════════════════════╗
-     ║   CREATE YOUR CHARACTER      ║
-     ╚══════════════════════════════╝
-`}</pre>
+      <SceneCanvas scene="charCreate" />
       <Separator />
 
       {step === 'name' && (

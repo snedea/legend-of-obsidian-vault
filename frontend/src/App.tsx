@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { GameProvider } from './context/GameContext';
 import { Notification } from './components/Notification';
@@ -31,11 +32,53 @@ import { NameChangeScreen } from './screens/NameChangeScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { VaultScreen } from './screens/VaultScreen';
 
+const api = (window as unknown as { electronAPI?: {
+  showTrafficLights?: () => void;
+  hideTrafficLights?: () => void;
+} }).electronAPI;
+
+function TrafficLightZone() {
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (hideTimer.current) {
+        clearTimeout(hideTimer.current);
+        hideTimer.current = null;
+      }
+    };
+  }, []);
+
+  const handleEnter = useCallback(() => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    hideTimer.current = null;
+    api?.showTrafficLights?.();
+  }, []);
+
+  const handleLeave = useCallback(() => {
+    hideTimer.current = setTimeout(() => {
+      hideTimer.current = null;
+      api?.hideTrafficLights?.();
+    }, 800);
+  }, []);
+
+  return (
+    <div
+      className="traffic-light-zone"
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    />
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <GameProvider>
+        <div className="drag-region" />
+        <TrafficLightZone />
         <div className="crt-overlay" />
+        <div className="crt-vignette" />
         <Routes>
           <Route path="/" element={<StartScreen />} />
           <Route path="/create" element={<CharacterCreation />} />

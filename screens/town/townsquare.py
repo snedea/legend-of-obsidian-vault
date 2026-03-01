@@ -48,17 +48,18 @@ class TownSquareScreen(Screen):
                         yield Button("(C)onjugality List", id="marriage")
 
                     with Vertical():
-                        # Third column - 6 buttons
+                        # Third column - 7 buttons
                         yield Button("(O)ther Places", id="other")
                         yield Button("(N)otes in the Vault", id="notes")
                         yield Button("(M)ake Announcement", id="announce")
                         yield Button("(X)pert Mode", id="expert")
+                        yield Button("(G)ame Settings", id="settings")
                         yield Button("(P)eople Online", id="online")
                         yield Button("(Q)uit to Fields", id="quit")
 
             yield Static("")
             yield Static("The Town Square  (? for menu)")
-            yield Static(f"(F,S,K,A,H,V,R,T,Y,L,W,D,C,N,O,X,M,P,Q)")
+            yield Static(f"(F,S,K,A,H,V,R,T,Y,L,W,D,C,N,O,X,G,M,P,Q)")
             yield Static("")
 
             # Status line
@@ -109,6 +110,9 @@ class TownSquareScreen(Screen):
             # Other Places IGM menu
             from screens.igm.other_places import OtherPlacesScreen
             self.app.push_screen(OtherPlacesScreen())
+        elif action == "settings":
+            from screens.settings import SettingsScreen
+            self.app.push_screen(SettingsScreen())
         elif action == "quit":
             lov.game_db.save_player(lov.current_player)
             self.app.pop_screen()
@@ -124,7 +128,7 @@ class TownSquareScreen(Screen):
             "H": "healer", "V": "stats", "I": "inn", "T": "training",
             "Y": "bank", "L": "list", "W": "mail", "D": "news",
             "C": "marriage", "N": "notes", "O": "other", "X": "expert",
-            "M": "announce", "P": "online", "Q": "quit"
+            "G": "settings", "M": "announce", "P": "online", "Q": "quit"
         }
 
         if key in menu_map:

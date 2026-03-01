@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function VioletScreen() {
   const nav = useNavigate();
@@ -114,6 +115,7 @@ export function VioletScreen() {
 
   return (
     <Terminal title="VIOLET'S ROOM" subtitle="Romance & Charm">
+      <SceneCanvas scene="violet" />
       <Separator />
       <div style={{ padding: '8px 0' }}>
         <div className="c-magenta">You enter Violet's room. The beautiful barmaid</div>

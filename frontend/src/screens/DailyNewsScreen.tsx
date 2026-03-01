@@ -5,6 +5,7 @@ import { MenuOption } from '../components/MenuOption';
 import { Separator } from '../components/Separator';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function DailyNewsScreen() {
   const nav = useNavigate();
@@ -18,6 +19,7 @@ export function DailyNewsScreen() {
 
   return (
     <Terminal title="DAILY NEWS" subtitle="Town Crier">
+      <SceneCanvas scene="news" />
       <Separator />
       <div className="c-white" style={{ padding: '8px 0' }}>
         {news || 'Loading...'}

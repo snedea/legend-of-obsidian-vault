@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function BankScreen() {
   const nav = useNavigate();
@@ -74,6 +75,7 @@ export function BankScreen() {
 
   return (
     <Terminal title="YE OLD BANK" subtitle="Safe Storage Since 1337">
+      <SceneCanvas scene="bank" />
       <Separator />
       <div className="c-white">Gold on hand: <span className="c-gold">{bank.gold.toLocaleString()}</span></div>
       <div className="c-white">Gold in bank: <span className="c-gold">{bank.bank_gold.toLocaleString()}</span></div>

@@ -4,6 +4,7 @@ Bank screen for Legend of the Obsidian Vault - Ye Old Bank
 from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Static, Button, Input
+from textual.containers import Container
 from textual import events
 
 
@@ -18,54 +19,60 @@ class BankScreen(Screen):
         # Delayed import to avoid circular dependency
         import lov
 
-        yield Static("🏦 Ye Old Bank", classes="header")
-        yield Static("=-" * 30, classes="separator")
-        yield Static("")
+        with Container(classes="main-border") as container:
+            container.border_title = "🏦  YE OLD BANK  🏦"
+            container.border_subtitle = "💰 Where Gold Grows 💰"
 
-        # Account status
-        yield Static(f"Gold in hand: {lov.current_player.gold:,}", classes="gold")
-        yield Static(f"Gold in bank: {lov.current_player.bank_gold:,}", classes="gold")
-        yield Static("")
-        yield Static("📈 Earn 10% interest daily on banked gold!", classes="content")
-        yield Static("")
-
-        if self.transaction_mode == 'deposit':
-            yield Static("How much gold to deposit?")
-            yield Input(id="amount_input", placeholder="Amount to deposit")
-            yield Static("")
-            yield Static("(A) Deposit All | (Q) Cancel")
-
-        elif self.transaction_mode == 'withdraw':
-            yield Static("How much gold to withdraw?")
-            yield Input(id="amount_input", placeholder="Amount to withdraw")
-            yield Static("")
-            yield Static("(A) Withdraw All | (Q) Cancel")
-
-        else:
-            # Main menu
-            yield Button("(D) Deposit Gold", id="deposit", disabled=lov.current_player.gold <= 0)
-            yield Button("(W) Withdraw Gold", id="withdraw", disabled=lov.current_player.bank_gold <= 0)
+            # Bank ASCII Art Header
+            yield Static("        ░░░  ✦ YE OLD BANK OF THE REALM ✦  ░░░", classes="bank-title")
+            yield Static("            ╔═══════════════════════════════╗", classes="bank-vault")
+            yield Static("           ╔╝    ╔═══════════════════╗      ╚╗", classes="bank-vault")
+            yield Static("          ╔╝     ║  💰  VAULT  💰   ║       ╚╗", classes="bank-vault-inner")
+            yield Static("         ╔╝      ║   ▓▓▓▓▓▓▓▓▓▓▓   ║        ╚╗", classes="bank-vault")
+            yield Static("        ╔╝       ║   ▓▓▓▓▓▓▓▓▓▓▓   ║         ╚╗", classes="bank-vault")
+            yield Static("       ╔╝        ╚═══════════════════╝          ╚╗", classes="bank-vault")
+            yield Static("      ╔╝     💎═══════════════════════════💎     ╚╗", classes="bank-gems")
+            yield Static("═══════════════════════════════════════════════════════", classes="bank-border")
             yield Static("")
 
-            # Show different messages for thieves with special abilities
-            if (lov.current_player.class_type == "D" and
-                lov.current_player.fairy_lore and
-                lov.current_player.bank_robberies_today == 0):
-                yield Static("The banker seems distracted by paperwork...")
-                yield Static("You notice the vault door is slightly ajar.")
-                yield Static("Your fairy magic tingles - you sense opportunity.")
+            # Account status
+            yield Static(f"    💰 Gold in hand: {lov.current_player.gold:,}", classes="gold")
+            yield Static(f"    🏦 Gold in bank: {lov.current_player.bank_gold:,}", classes="bank-gold")
+            yield Static("")
+            yield Static("    📈 Earn 10% interest daily on banked gold!", classes="bank-interest")
+            yield Static("")
+
+            if self.transaction_mode == 'deposit':
+                yield Static("    How much gold to deposit?", classes="bank-prompt")
+                yield Input(id="amount_input", placeholder="Amount to deposit")
+                yield Static("")
+                yield Static("    (A) Deposit All | (Q) Cancel", classes="bank-options")
+
+            elif self.transaction_mode == 'withdraw':
+                yield Static("    How much gold to withdraw?", classes="bank-prompt")
+                yield Input(id="amount_input", placeholder="Amount to withdraw")
+                yield Static("")
+                yield Static("    (A) Withdraw All | (Q) Cancel", classes="bank-options")
+
             else:
-                yield Static("The banker eyes your gold with interest.")
-                yield Static("'Your money is safe with us, earning 10% daily!'")
+                # Main menu
+                yield Button("(D) Deposit Gold", id="deposit", disabled=lov.current_player.gold <= 0)
+                yield Button("(W) Withdraw Gold", id="withdraw", disabled=lov.current_player.bank_gold <= 0)
+                yield Static("")
 
-            yield Static("")
-            yield Static("(Q) Return to town")
+                # Show different messages for thieves with special abilities
+                if (lov.current_player.class_type == "D" and
+                    lov.current_player.fairy_lore and
+                    lov.current_player.bank_robberies_today == 0):
+                    yield Static("    The banker seems distracted by paperwork...", classes="bank-thief-hint")
+                    yield Static("    You notice the vault door is slightly ajar.", classes="bank-thief-hint")
+                    yield Static("    Your fairy magic tingles - you sense opportunity.", classes="bank-thief-hint")
+                else:
+                    yield Static("    The banker eyes your gold with interest.", classes="bank-dialogue")
+                    yield Static("    'Your money is safe with us, earning 10% daily!'", classes="bank-dialogue")
 
-            # Hidden robbery option for qualified thieves
-            if (lov.current_player.class_type == "D" and
-                lov.current_player.fairy_lore and
-                lov.current_player.bank_robberies_today == 0):
-                yield Static("", classes="content")  # Blank line for spacing
+                yield Static("")
+                yield Static("    (Q) Return to town", classes="bank-options")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle banking options"""

@@ -1,0 +1,50 @@
+// Mirrors colors.css -- source of truth for canvas rendering
+export const P = {
+  black:       '#0c0a14',
+  red:         '#8a3040',
+  green:       '#2a7a4a',
+  yellow:      '#8a6a20',
+  blue:        '#3a3a7a',
+  magenta:     '#6a2a6a',
+  cyan:        '#4a6a7a',
+  white:       '#9a90aa',
+
+  brightBlack:   '#524a68',
+  brightRed:     '#c45060',
+  brightGreen:   '#5cb87a',
+  brightYellow:  '#c8a04a',
+  brightBlue:    '#6a7abf',
+  brightMagenta: '#c080d0',
+  brightCyan:    '#70a0b0',
+  brightWhite:   '#d0c8e0',
+
+  border:      '#6a4a8a',
+  gold:        '#c8a04a',
+
+  // Sky gradients
+  skyDawnTop:    '#1a0a2a',
+  skyDawnMid:    '#4a2040',
+  skyDawnBottom: '#8a4030',
+  skyDayTop:     '#1a2040',
+  skyDayMid:     '#3a4a7a',
+  skyDayBottom:  '#5a6a9a',
+  skyDuskTop:    '#1a1028',
+  skyDuskMid:    '#5a2040',
+  skyDuskBottom: '#8a5030',
+  skyNightTop:   '#060410',
+  skyNightMid:   '#0c0a18',
+  skyNightBottom:'#141020',
+
+  // Terrain
+  groundDark:   '#1a1410',
+  groundMid:    '#2a2018',
+  groundLight:  '#3a2a1a',
+  stoneDark:    '#2a2028',
+  stoneMid:     '#3a3038',
+  stoneLight:   '#4a4048',
+  treeDark:     '#1a3020',
+  treeMid:      '#2a5030',
+  treeLight:    '#3a6a40',
+  waterDark:    '#1a2a3a',
+  waterLight:   '#2a4a6a',
+} satisfies Record<string, string>;

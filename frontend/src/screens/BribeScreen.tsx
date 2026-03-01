@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function BribeScreen() {
   const nav = useNavigate();
@@ -48,6 +49,7 @@ export function BribeScreen() {
 
   return (
     <Terminal title="SLEEPING TARGETS" subtitle="Dark Dealings">
+      <SceneCanvas scene="bribe" />
       <Separator />
       <div className="c-red">Bribe cost: {bribe.cost.toLocaleString()} gold</div>
       <div className="c-muted">Your gold: {bribe.gold.toLocaleString()}</div>

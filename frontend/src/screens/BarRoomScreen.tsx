@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function BarRoomScreen() {
   const nav = useNavigate();
@@ -60,6 +61,7 @@ export function BarRoomScreen() {
 
   return (
     <Terminal title="THE BAR ROOM" subtitle="Drinks & Deals">
+      <SceneCanvas scene="barRoom" />
       <Separator />
       <div style={{ padding: '8px 0' }}>
         <div className="c-yellow">The gruff bartender eyes you carefully.</div>

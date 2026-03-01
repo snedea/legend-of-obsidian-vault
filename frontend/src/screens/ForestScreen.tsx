@@ -6,13 +6,8 @@ import { StatusBar } from '../components/StatusBar';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
-const FOREST_ART = `    ▄▄██▄▄     ▄▄██▄▄     ▄▄██▄▄     ▄▄██▄▄     ▄▄██▄▄
-   ███████    ███████    ███████    ███████    ███████
-  ██▀▀▀▀▀██  ██▀▀▀▀▀██  ██▀▀▀▀▀██  ██▀▀▀▀▀██  ██▀▀▀▀▀██
-     ║║║        ║║║        ║║║        ║║║        ║║║
-     ║║║        ║║║        ║║║        ║║║        ║║║
-  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░`;
 
 export function ForestScreen() {
   const nav = useNavigate();
@@ -52,7 +47,7 @@ export function ForestScreen() {
       <div className="c-cyan" style={{ textAlign: 'center', fontWeight: 'bold' }}>
         THE MYSTICAL FOREST OF KNOWLEDGE
       </div>
-      <pre className="ascii-art c-green">{FOREST_ART}</pre>
+      <SceneCanvas scene="forest" />
       <Separator char="=" />
 
       <div style={{ padding: '8px 0' }}>

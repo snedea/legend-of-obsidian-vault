@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function XenonScreen() {
   const nav = useNavigate();
@@ -44,6 +45,7 @@ export function XenonScreen() {
 
   return (
     <Terminal title="XENON'S STORAGE" subtitle="Safe Keeping">
+      <SceneCanvas scene="xenon" />
       <Separator />
       <div className="two-columns">
         <div>

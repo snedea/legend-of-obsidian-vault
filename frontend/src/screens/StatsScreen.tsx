@@ -5,6 +5,7 @@ import { Separator } from '../components/Separator';
 import { MenuOption } from '../components/MenuOption';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 const CLASS_NAMES: Record<string, string> = {
   K: 'Death Knight',
@@ -22,6 +23,7 @@ export function StatsScreen() {
 
   return (
     <Terminal title="CHARACTER STATS" subtitle={player.name}>
+      <SceneCanvas scene="stats" />
       <Separator />
       <div className="two-columns" style={{ padding: '4px 0' }}>
         <div>

@@ -5,6 +5,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function GatewayScreen() {
   const nav = useNavigate();
@@ -32,6 +33,7 @@ export function GatewayScreen() {
 
   return (
     <Terminal title="GATEWAY PORTAL" subtitle="Between Worlds">
+      <SceneCanvas scene="gateway" />
       <Separator />
       <div className="narrative">
         A shimmering portal pulses with otherworldly energy.

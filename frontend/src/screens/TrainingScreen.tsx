@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function TrainingScreen() {
   const nav = useNavigate();
@@ -42,6 +43,7 @@ export function TrainingScreen() {
 
   return (
     <Terminal title="TURGON'S TRAINING" subtitle={`Level ${training.current_level}`}>
+      <SceneCanvas scene="training" />
       <Separator />
       <div className="c-cyan">Your current level: {training.current_level}</div>
       <Separator />

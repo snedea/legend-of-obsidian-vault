@@ -5,6 +5,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 interface ShopProps {
   type: 'weapons' | 'armor';
@@ -43,6 +44,7 @@ export function ShopScreen({ type }: ShopProps) {
 
   return (
     <Terminal title={title} subtitle={`Gold: ${shop.current_gold.toLocaleString()}`}>
+      <SceneCanvas scene={type === 'weapons' ? 'weaponShop' : 'armorShop'} />
       <Separator />
       <div style={{ padding: '4px 0' }}>
         {shop.items.filter((_, i) => i <= shop.current_item_index + 1).map((item) => (

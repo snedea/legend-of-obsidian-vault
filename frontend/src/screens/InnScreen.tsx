@@ -3,6 +3,7 @@ import { Terminal } from '../components/Terminal';
 import { MenuOption } from '../components/MenuOption';
 import { Separator } from '../components/Separator';
 import { useKeyboard } from '../hooks/useKeyboard';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function InnScreen() {
   const nav = useNavigate();
@@ -16,12 +17,7 @@ export function InnScreen() {
 
   return (
     <Terminal title="THE INN" subtitle="Rest Your Weary Bones">
-      <pre className="ascii-art c-yellow">{`
-     ╔══════════════════════════════╗
-     ║      WELCOME TO THE INN     ║
-     ║   A Warm Fire Awaits You    ║
-     ╚══════════════════════════════╝
-`}</pre>
+      <SceneCanvas scene="inn" />
       <Separator />
       <div className="c-muted" style={{ padding: '8px 0' }}>
         The innkeeper greets you warmly.

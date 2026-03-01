@@ -6,6 +6,7 @@ import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
 import type { Character } from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function PlayerSelect() {
   const nav = useNavigate();
@@ -43,6 +44,7 @@ export function PlayerSelect() {
 
   return (
     <Terminal title="SELECT CHARACTER" subtitle="Choose Your Hero">
+      <SceneCanvas scene="playerSelect" />
       <Separator />
       {loading ? (
         <div className="c-muted">Loading characters...</div>

@@ -5,6 +5,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function CavernScreen() {
   const nav = useNavigate();
@@ -29,6 +30,7 @@ export function CavernScreen() {
 
   return (
     <Terminal title="THE CAVERN" subtitle="Dark and Mysterious">
+      <SceneCanvas scene="cavern" />
       <Separator />
       <div className="narrative">
         The cavern entrance yawns before you, darkness swirling within.

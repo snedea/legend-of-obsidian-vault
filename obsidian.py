@@ -256,7 +256,9 @@ class ObsidianVault:
                 enemy_name = enemy_lore.get('name', self._generate_enemy_name(note, base_enemy[0]))
 
             # Scale stats based on note difficulty vs player level
-            difficulty_multiplier = min(1.5, max(0.8, note.difficulty_level / level))
+            # Uses configurable difficulty mode from game_settings
+            note_difficulty = note.get_difficulty(player_level=level)
+            difficulty_multiplier = min(1.5, max(0.8, note_difficulty / level))
 
             enemy = Enemy(
                 name=enemy_name,

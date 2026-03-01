@@ -1,18 +1,46 @@
 {
   "name": "legend-of-obsidian-vault",
+  "productName": "Obsidian Vault",
   "version": "0.0.5",
   "description": "A LORD-Inspired Knowledge RPG with Obsidian Vault Integration",
   "main": "electron/dist/main.js",
   "private": true,
   "scripts": {
-    "backend:dev": "cd backend && python3 -m uvicorn main:app --host 127.0.0.1 --port 8742 --reload",
-    "frontend:dev": "cd frontend && npm run dev",
+    "backend:dev": "python3 -m uvicorn backend.main:app --host 127.0.0.1 --port 8742 --reload",
+    "frontend:dev": "npm run --prefix frontend dev",
     "electron:compile": "tsc -p electron/tsconfig.json",
-    "electron:dev": "npm run electron:compile && electron .",
-    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "electron:dev": "npm run electron:compile && concurrently --kill-others --names backend,vite,electron \"npm run backend:dev\" \"npm run frontend:dev\" \"sleep 5 && electron .\"",
+    "dev": "concurrently --kill-others --names backend,frontend \"npm run backend:dev\" \"npm run frontend:dev\"",
     "build:frontend": "cd frontend && npm run build",
     "build:electron": "npm run electron:compile && npm run build:frontend && electron-builder",
     "build": "npm run build:electron"
+  },
+  "build": {
+    "appId": "com.snedea.obsidian-vault",
+    "mac": {
+      "category": "public.app-category.games",
+      "target": "dmg"
+    },
+    "files": [
+      "electron/dist/**/*",
+      "frontend/dist/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": ".",
+        "to": "game",
+        "filter": [
+          "backend/**/*.py",
+          "screens/**/*.py",
+          "*.py",
+          "demo_vault/**/*",
+          "requirements.txt"
+        ]
+      }
+    ],
+    "dmg": {
+      "title": "Obsidian Vault"
+    }
   },
   "devDependencies": {
     "electron": "^33.0.0",

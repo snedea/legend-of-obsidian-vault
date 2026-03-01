@@ -3,8 +3,12 @@ import path from 'path';
 import { startBackend, stopBackend, getBackendPort } from './python';
 
 let mainWindow: BrowserWindow | null = null;
+let autoHideTimer: ReturnType<typeof setTimeout> | null = null;
 
 const isDev = !app.isPackaged;
+
+// Set app name for macOS menu bar and dock (overrides "Electron" in dev)
+app.setName('Obsidian Vault');
 
 async function createWindow(): Promise<void> {
   // Start Python backend first
@@ -24,8 +28,9 @@ async function createWindow(): Promise<void> {
     height: 700,
     minWidth: 700,
     minHeight: 500,
-    backgroundColor: '#000000',
+    backgroundColor: '#0c0a14',
     titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 12, y: 12 },
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -40,6 +45,14 @@ async function createWindow(): Promise<void> {
     mainWindow?.webContents.executeJavaScript(
       `window.__BACKEND_PORT__ = ${getBackendPort()};`
     );
+
+    // Auto-hide traffic lights after 3 seconds (cancellable by hover)
+    autoHideTimer = setTimeout(() => {
+      autoHideTimer = null;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.setWindowButtonVisibility(false);
+      }
+    }, 3000);
   });
 
   if (isDev) {
@@ -48,8 +61,6 @@ async function createWindow(): Promise<void> {
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
     // Prod: frontend/dist is packaged at app root level
-    // __dirname = electron/dist/, app root = __dirname/../..
-    // But in asar: use app.getAppPath() which points to the app root
     await mainWindow.loadFile(path.join(app.getAppPath(), 'frontend', 'dist', 'index.html'));
   }
 
@@ -70,6 +81,22 @@ ipcMain.handle('select-vault-folder', async () => {
 });
 
 ipcMain.handle('get-backend-port', () => getBackendPort());
+
+ipcMain.on('show-traffic-lights', () => {
+  if (autoHideTimer) {
+    clearTimeout(autoHideTimer);
+    autoHideTimer = null;
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.setWindowButtonVisibility(true);
+  }
+});
+
+ipcMain.on('hide-traffic-lights', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.setWindowButtonVisibility(false);
+  }
+});
 
 app.whenReady().then(createWindow);
 

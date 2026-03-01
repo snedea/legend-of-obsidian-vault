@@ -5,6 +5,7 @@ import { Separator } from '../components/Separator';
 import { MenuOption } from '../components/MenuOption';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 const CLASS_SHORT: Record<string, string> = { K: 'DK', P: 'MY', D: 'TH' };
 
@@ -20,6 +21,7 @@ export function WarriorsScreen() {
 
   return (
     <Terminal title="WARRIORS LIST" subtitle="Heroes of the Realm">
+      <SceneCanvas scene="warriors" />
       <Separator />
       <div style={{ padding: '4px 0' }}>
         <div className="c-cyan" style={{ display: 'flex', gap: '8px' }}>

@@ -11,8 +11,10 @@ export function Terminal({ title, subtitle, children }: Props) {
     <div className="terminal">
       <div className="screen-border">
         {title && <span className="border-title">{title}</span>}
+        <div className="screen-content">
+          {children}
+        </div>
         {subtitle && <span className="border-subtitle">{subtitle}</span>}
-        {children}
       </div>
     </div>
   );

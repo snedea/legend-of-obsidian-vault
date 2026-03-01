@@ -6,6 +6,7 @@ import { Separator } from '../components/Separator';
 import { useGame } from '../context/GameContext';
 import { useKeyboard } from '../hooks/useKeyboard';
 import * as api from '../services/api';
+import { SceneCanvas } from '../canvas/SceneCanvas';
 
 export function VaultScreen() {
   const nav = useNavigate();
@@ -56,6 +57,7 @@ export function VaultScreen() {
 
   return (
     <Terminal title="VAULT SETTINGS" subtitle="Obsidian Integration">
+      <SceneCanvas scene="vault" />
       <Separator />
       {status && (
         <div style={{ padding: '4px 0' }}>
