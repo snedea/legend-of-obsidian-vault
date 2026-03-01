@@ -1,4 +1,4 @@
-# Legend of the Obsidian Vault (LOV)
+# LOOV: Legend of the Obsidian Vault
 
 > A LORD-inspired knowledge RPG that transforms your Obsidian vault into a living dungeon.
 
@@ -8,7 +8,7 @@ Transform your forgotten notes into epic forest battles. This authentic BBS-styl
 ![Version](https://img.shields.io/badge/Version-0.0.5-blue)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
-![Legend of the Obsidian Vault gameplay](docs/images/gameplay.gif)
+![LOOV gameplay](docs/images/gameplay.gif)
 
 ## Quick Start
 

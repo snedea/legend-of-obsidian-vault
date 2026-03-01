@@ -1,8 +1,8 @@
 {
-  "name": "legend-of-obsidian-vault",
-  "productName": "Obsidian Vault",
+  "name": "loov",
+  "productName": "LOOV",
   "version": "0.0.5",
-  "description": "A LORD-Inspired Knowledge RPG with Obsidian Vault Integration",
+  "description": "LOOV: Legend of the Obsidian Vault - A LORD-Inspired Knowledge RPG",
   "main": "electron/dist/main.js",
   "private": true,
   "scripts": {
@@ -16,7 +16,7 @@
     "build": "npm run build:electron"
   },
   "build": {
-    "appId": "com.snedea.obsidian-vault",
+    "appId": "com.snedea.loov",
     "mac": {
       "category": "public.app-category.games",
       "target": "dmg"
@@ -41,7 +41,7 @@
       }
     ],
     "dmg": {
-      "title": "Obsidian Vault"
+      "title": "LOOV"
     }
   },
   "devDependencies": {
