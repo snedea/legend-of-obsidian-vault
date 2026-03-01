@@ -8,7 +8,7 @@ Transform your forgotten notes into epic forest battles. This authentic BBS-styl
 ![Version](https://img.shields.io/badge/Version-0.0.5-blue)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
-<!-- TODO: Add gameplay GIF here -->
+![Legend of the Obsidian Vault gameplay](docs/images/gameplay.gif)
 
 ## Quick Start
 
@@ -81,6 +81,16 @@ npm run build    # Produces .dmg in dist/
 - Animated pixel art scene headers for all 28 screens
 - CRT overlay effects for retro aesthetic
 - Canvas-based rendering engine with 4x pixel art
+
+## Screenshots
+
+| Main Menu | Town Square |
+|:-:|:-:|
+| ![Main Menu](docs/images/main-menu.png) | ![Town Square](docs/images/town-square.png) |
+
+| Mystical Forest | Combat |
+|:-:|:-:|
+| ![Mystical Forest](docs/images/mystical-forest.png) | ![Combat](docs/images/combat.png) |
 
 ## Architecture
 
