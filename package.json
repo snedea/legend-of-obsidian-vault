@@ -31,8 +31,10 @@
         "to": "game",
         "filter": [
           "backend/**/*.py",
-          "screens/**/*.py",
-          "*.py",
+          "game_data.py",
+          "obsidian.py",
+          "brainbot.py",
+          "fantasy_translator.py",
           "demo_vault/**/*",
           "requirements.txt"
         ]

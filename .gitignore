@@ -164,6 +164,11 @@ saves/*.db*
 saves/backups/
 *.log
 
+# Node / Electron
+node_modules/
+frontend/dist/
+electron/dist/
+
 # OS-specific
 .DS_Store
 .DS_Store?

@@ -1,3 +1,0 @@
-"""
-Combat-related screens
-"""

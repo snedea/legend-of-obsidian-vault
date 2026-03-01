@@ -1,3 +1,0 @@
-"""
-Data models and structures
-"""
