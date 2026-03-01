@@ -20,8 +20,8 @@ Transform your forgotten notes into epic forest battles. This authentic BBS-styl
 ### Installation
 
 ```bash
-git clone https://github.com/snedea/legend-of-obsidian-vault.git
-cd legend-of-obsidian-vault
+git clone https://github.com/legend-of-obsidian-vault/loov.git
+cd loov
 
 # Install Node dependencies (Electron + React)
 npm install
